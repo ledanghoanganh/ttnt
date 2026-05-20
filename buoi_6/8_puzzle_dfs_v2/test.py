@@ -78,22 +78,22 @@ def expand(problem: Problem, node: Node):
 
 def eight_puzzel(problem: Problem):
     node = Node(problem.start, None, None, 0)
-    frontier = deque(); frontier.append(node)
+    if node.state == problem.goal: return node
+
+    frontier = []; frontier.append(node)
     frontier_states = set(); frontier_states.add(tuple_matrix(node.state))
-    reached = set()
+    reached = set(); reached.add(tuple_matrix(problem.start))
 
     while frontier:
-        node = frontier.popleft()
-        if node.state == problem.goal: return node
-
-        reached.add(tuple_matrix(node.state))
-
+        node = frontier.pop()
         for child in expand(problem, node):
-            c = tuple_matrix(child.state)
-            if c not in reached and c not in frontier_states:
-                frontier.append(child)    
-                frontier_states.add(c)    
-
+            s = child.state
+            if s == problem.goal: return child
+            if tuple_matrix(s) not in reached and tuple_matrix(s) not in frontier_states:
+                reached.add(tuple_matrix(s))
+                frontier.append(child)
+                frontier_states.add(tuple_matrix(s))
+            
     return False
 
 

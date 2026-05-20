@@ -2,6 +2,15 @@ import random
 import copy
 from collections import deque
 
+
+def get_index(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return (i, j)
+    return None
+
+
 class Problem:
     def __init__(self, start, goal, states, actions):
         self.start = start
@@ -12,8 +21,8 @@ class Problem:
     def goal_test(self, state):
         return state == self.goal
     
-    def get_actions(self, node: Node): 
-        (i, j) = node.get_index()
+    def get_actions(self, state):
+        (i, j) = get_index(state)
         actions = []
 
         if i > 0: actions.append("up")
@@ -30,13 +39,6 @@ class Node:
         self.action = action
         self.path_cost = path_cost
 
-    def get_index(self):
-        for i in range(3):
-            for j in range(3):
-                if self.state[i][j] == 0:
-                    return (i, j)
-        return None
-
 def random_matrix():
     nums = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     matrix = [[0 for _ in range(3)] for _ in range(3)]
@@ -51,7 +53,7 @@ def tuple_matrix(matrix):
     return tuple(tuple(row) for row in matrix)
 
 def child_node(problem: Problem, node: Node, action):
-    (i, j) = node.get_index()
+    (i, j) = get_index(node.state)
     moves = {
         "up": (-1, 0),
         "down": (1, 0),
@@ -82,7 +84,7 @@ def eight_puzzel(problem: Problem):
         
         explored.add(tuple_matrix(node.state))
         
-        for action in problem.get_actions(node):
+        for action in problem.get_actions(node.state):
             child = child_node(problem, node, action)
                         
             if tuple_matrix(child.state) not in explored and tuple_matrix(child.state) not in frontier_states:

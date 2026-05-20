@@ -1,6 +1,5 @@
 import random
 import copy
-from collections import deque
 
 
 class Problem:
@@ -76,25 +75,32 @@ def expand(problem: Problem, node: Node):
     return children
 
 
-def eight_puzzel(problem: Problem):
+def depth_limited_search(problem: Problem, l):
     node = Node(problem.start, None, None, 0)
-    frontier = deque(); frontier.append(node)
+    if node.state == problem.goal: return node
+
+    frontier = []; frontier.append(node)
     frontier_states = set(); frontier_states.add(tuple_matrix(node.state))
-    reached = set()
+    reached = set(); reached.add(tuple_matrix(problem.start))
 
+    res = False
     while frontier:
-        node = frontier.popleft()
+        node = frontier.pop()
         if node.state == problem.goal: return node
+        if node.path_cost >= l:
+            res = "cutoff"
+        elif tuple_matrix(node.state) not in reached and tuple_matrix(node.state) not in frontier_states:
+            for child in expand(problem, node):
+                frontier.append(child)
+                frontier_states.add(tuple_matrix(child.state))
+                reached.add(child.state)
+    return res
 
-        reached.add(tuple_matrix(node.state))
 
-        for child in expand(problem, node):
-            c = tuple_matrix(child.state)
-            if c not in reached and c not in frontier_states:
-                frontier.append(child)    
-                frontier_states.add(c)    
-
-    return False
+def eight_puzzel(problem: Problem):
+    for depth in (0, 1000):
+        res = depth_limited_search(problem, depth)
+        if res != "cutoff": return res
 
 
 if __name__ == "__main__":
