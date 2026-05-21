@@ -1,7 +1,6 @@
 import copy
 import random
 
-
 class Node:
     __slots__ = ("state", "parent", "action", "path_cost")
 
@@ -10,7 +9,6 @@ class Node:
         self.parent = parent
         self.action = action
         self.path_cost = path_cost
-
 
 class Problem:
     MOVES = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
@@ -31,7 +29,6 @@ class Problem:
         if j < 2: actions.append("right")
         return actions
 
-
 def get_index(state):
     for i in range(3):
         for j in range(3):
@@ -39,10 +36,8 @@ def get_index(state):
                 return (i, j)
     return None
 
-
 def tuple_matrix(m):
     return tuple(tuple(r) for r in m)
-
 
 def random_matrix():
     nums = [0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -53,7 +48,6 @@ def random_matrix():
             matrix[i][j] = num
             nums.remove(num)
     return matrix
-
 
 def expand(problem: Problem, node: Node, log_cb=None):
     i, j = get_index(node.state)
@@ -67,7 +61,6 @@ def expand(problem: Problem, node: Node, log_cb=None):
         if log_cb:
             log_cb(child)
     return children
-
 
 def child_node(problem: Problem, node: Node, action, log_cb=None):
     i, j = get_index(node.state)

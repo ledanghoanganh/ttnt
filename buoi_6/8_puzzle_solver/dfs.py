@@ -1,8 +1,8 @@
 from puzzle_core import Node, Problem, tuple_matrix, expand
 
-
 def dfs(problem: Problem, log_cb=None):
     node = Node(problem.start, None, None, 0)
+
     if node.state == problem.goal:
         return node, 0
 
