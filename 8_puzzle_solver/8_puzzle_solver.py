@@ -13,12 +13,14 @@ from puzzle_core import random_matrix, Problem
 from bfs import bfs as _bfs, bfs_v2 as _bfs_v2
 from dfs import dfs as _dfs
 from ids import ids as _ids
+from ucs import ucs as _ucs
 
 ALGORITHMS = {
     "BFS": _bfs,
     "BFS_V2": _bfs_v2,
     "DFS": _dfs,
     "IDS": _ids,
+    "UCS": _ucs
 }
 
 class StopSearchException(Exception):
@@ -484,6 +486,7 @@ class PuzzleController:
         self._log_off = 0
 
     def start_solving(self):
+        self.clear_log()
         mat = self.view.get_input_matrix()
         if not mat:
             messagebox.showerror("Lỗi", "Vui lòng nhập đủ các số từ 0-8 hợp lệ.")

@@ -10,6 +10,9 @@ class Node:
         self.action = action
         self.path_cost = path_cost
 
+    def __lt__(self, other):
+        return self.path_cost < other.path_cost
+
 class Problem:
     MOVES = {"up": (-1, 0), "down": (1, 0), "left": (0, -1), "right": (0, 1)}
 

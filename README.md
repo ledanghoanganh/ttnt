@@ -10,6 +10,8 @@
 ttnt/
 ├── README.md
 │
+├── 8_puzzle_solver/                # ★ Module chính (MVC, GUI Tkinter, đa thuật toán) – xem chi tiết bên dưới
+│
 ├── buoi_2/                         # Buổi 2 – Khám phá bài toán (bài tập ảnh chụp)
 │   └── bt1.jpg
 │
@@ -21,21 +23,24 @@ ttnt/
 │
 ├── buoi_4/                         # Buổi 4 – Mô hình hóa bài toán (Model-based)
 │   ├── 24162006_LeDangHoangAnh_8_Puzzel_Model.ipynb
-│   └── 24162006_LeDangHoangAnh_Robot_Hut_Bui_Model.ipynb
+│   ├── 24162006_LeDangHoangAnh_Robot_Hut_Bui_Model.ipynb
+│   └── 24162006_LeDangHoangAnh_Robot_Hut_Bui_Simple.ipynb
 │
 ├── buoi_5/                         # Buổi 5 – Phát triển solver có giao diện (Tkinter GUI)
 │   ├── 8_puzzel_bfs_v1/              # Phiên bản v1: GUI + BFS cơ bản
 │   └── 8_puzzel_bfs_v2/              # Phiên bản v2: GUI + BFS cải tiến early goal-test
 │
-└── buoi_6/                         # Buổi 6 – Solver đa thuật toán (module hóa đầy đủ)
-    ├── 8_puzzle_dfs_v2/              # Thử nghiệm DFS riêng
-    ├── 8_puzzle_ids.py/              # Thử nghiệm IDS riêng
-    └── 8_puzzle_solver/              # ★ Module chính – xem chi tiết bên dưới
+├── buoi_6/                         # Buổi 6 – DFS & IDS
+│   ├── 8_puzzle_dfs_v2/              # Thử nghiệm DFS riêng
+│   └── 8_puzzle_ids.py/              # Thử nghiệm IDS riêng
+│
+└── buoi_7/                         # Buổi 7 – Tìm kiếm chi phí đồng nhất (UCS)
+    └── ucs.py                      # Bài tập UCS
 ```
 
 ---
 
-## Module chính: `buoi_6/8_puzzle_solver/`
+## Module chính: `8_puzzle_solver/`
 
 Module này là phiên bản hoàn chỉnh nhất, áp dụng kiến trúc **MVC (Model–View–Controller)** và hỗ trợ nhiều thuật toán tìm kiếm thông qua một **registry tập trung**.
 
@@ -46,6 +51,7 @@ Module này là phiên bản hoàn chỉnh nhất, áp dụng kiến trúc **MVC
 ├── bfs.py                  # Thuật toán BFS (2 biến thể: late / early goal-test)
 ├── dfs.py                  # Thuật toán DFS (graph-search có tập visited)
 ├── ids.py                  # Thuật toán IDS (depth-limited + iterative deepening)
+├── ucs.py                  # Thuật toán UCS (Uniform Cost Search)
 └── 8_puzzle_solver.py      # Ứng dụng chính: GUI Tkinter + MVC Controller
 ```
 
@@ -57,6 +63,7 @@ Module này là phiên bản hoàn chỉnh nhất, áp dụng kiến trúc **MVC
 | `bfs.py` | Hàm `bfs()` (late goal-test) và `bfs_v2()` (early goal-test) |
 | `dfs.py` | Hàm `dfs()` — DFS có tập `reached` tránh lặp vô hạn |
 | `ids.py` | Hàm `ids()` — IDS tối ưu bộ nhớ; hàm nội bộ `_depth_limited_search()` |
+| `ucs.py` | Hàm `ucs()` — Thuật toán tìm kiếm chi phí đồng nhất (Uniform Cost Search) |
 | `8_puzzle_solver.py` | `PuzzleModel` (logic), `PuzzleView` (GUI), `PuzzleController` (điều phối); registry `ALGORITHMS` ánh xạ tên → hàm |
 
 ---
@@ -131,6 +138,7 @@ ALGORITHMS = {
     "BFS_V2":   _bfs_v2,
     "DFS":      _dfs,
     "IDS":      _ids,
+    "UCS":      _ucs,
     "MY_ALGO":  _my_algo,                        # 2. Thêm vào dict
 }
 ```
@@ -148,6 +156,6 @@ python -m pip install tk   # thường đã đi kèm với Python 3.x
 Chạy ứng dụng:
 
 ```bash
-cd buoi_6/8_puzzle_solver
+cd 8_puzzle_solver
 python 8_puzzle_solver.py
 ```
