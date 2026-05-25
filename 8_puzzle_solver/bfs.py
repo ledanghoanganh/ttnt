@@ -1,7 +1,9 @@
 from collections import deque
-from puzzle_core import Node, Problem, tuple_matrix, expand, child_node
+from puzzle_core import Node, Problem, tuple_matrix, expand, child_node, random_matrix
 
 def bfs(problem: Problem, log_cb=None):
+    """Thuật toán Breadth-First Search cho bài toán 8-puzzle.
+    """
     node = Node(problem.start, None, None, 0)
     frontier = deque([node])
     frontier_set = {tuple_matrix(node.state)}
@@ -24,6 +26,8 @@ def bfs(problem: Problem, log_cb=None):
     return False, len(reached)
 
 def bfs_v2(problem: Problem, log_cb=None):
+    """Thuật toán Breadth-First Search phiên bản Early-Goal Test cho bài toán 8-puzzle.
+    """
     node = Node(problem.start, None, None, 0)
 
     if problem.goal_test(node.state):
@@ -48,3 +52,52 @@ def bfs_v2(problem: Problem, log_cb=None):
                 frontier_set.add(cs)
 
     return False, len(explored)
+
+if __name__ == "__main__":
+    matrix = random_matrix()
+    goal = [[1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 0]]
+    problem = Problem(matrix, goal)
+
+    print("Ma trận bắt đầu:")
+    for row in matrix:
+        print(row)
+
+    print("Giải bằng BFS")
+
+    res_node, reached_len = bfs(problem)
+    if res_node == False:
+        print("Không giải được")
+    else:
+        res = []
+        while res_node.parent != None:
+            res.append(res_node)
+            res_node = res_node.parent
+
+        res.reverse()
+        print(f"Đã duyệt {reached_len} trạng thái.")
+        print(f"Số bước giải: {len(res)}")
+        for node in res:
+            print(node.action)
+            for row in node.state:
+                print(row)
+
+    print("Giải bằng BFS_V2")
+
+    res_node, reached_len = bfs_v2(problem)
+    if res_node == False:
+        print("Không giải được")
+    else:
+        res = []
+        while res_node.parent != None:
+            res.append(res_node)
+            res_node = res_node.parent
+
+        res.reverse()
+        print(f"Đã duyệt {reached_len} trạng thái.")
+        print(f"Số bước giải: {len(res)}")
+        for node in res:
+            print(node.action)
+            for row in node.state:
+                print(row)

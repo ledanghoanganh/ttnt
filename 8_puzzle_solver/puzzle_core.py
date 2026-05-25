@@ -74,3 +74,25 @@ def child_node(problem: Problem, node: Node, action, log_cb=None):
     if log_cb:
         log_cb(child)
     return child
+
+def manhattan_distance(state, goal):
+    """Tính tổng khoảng cách Manhattan của các ô (bỏ qua ô trống 0) so với vị trí đích."""
+    distance = 0
+    goal_positions = {}
+    
+    # Tạo mapping vị trí đích của mỗi giá trị
+    for i in range(3):
+        for j in range(3):
+            val = goal[i][j]
+            if val != 0:
+                goal_positions[val] = (i, j)
+                
+    # Tính khoảng cách Manhattan cho từng giá trị trên state hiện tại
+    for i in range(3):
+        for j in range(3):
+            val = state[i][j]
+            if val != 0:
+                goal_i, goal_j = goal_positions[val]
+                distance += abs(i - goal_i) + abs(j - goal_j)
+                
+    return distance

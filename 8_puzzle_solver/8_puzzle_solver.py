@@ -14,13 +14,15 @@ from bfs import bfs as _bfs, bfs_v2 as _bfs_v2
 from dfs import dfs as _dfs
 from ids import ids as _ids
 from ucs import ucs as _ucs
+from gs import gs as _gs
 
 ALGORITHMS = {
     "BFS": _bfs,
     "BFS_V2": _bfs_v2,
     "DFS": _dfs,
     "IDS": _ids,
-    "UCS": _ucs
+    "UCS": _ucs,
+    "GS": _gs
 }
 
 class StopSearchException(Exception):
