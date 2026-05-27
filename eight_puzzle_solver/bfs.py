@@ -4,7 +4,11 @@ from puzzle_core import Node, Problem, tuple_matrix, expand, child_node, random_
 def bfs(problem: Problem, log_cb=None):
     """Thuật toán Breadth-First Search cho bài toán 8-puzzle.
     """
-    node = Node(problem.start, None, None, 0)
+    from puzzle_core import is_solvable
+    if not is_solvable(problem.start, problem.goal):
+        return False, 0
+
+    node = Node(problem.start, None, None, 0, 0, 0)
     frontier = deque([node])
     frontier_set = {tuple_matrix(node.state)}
     reached = set()
@@ -28,7 +32,11 @@ def bfs(problem: Problem, log_cb=None):
 def bfs_v2(problem: Problem, log_cb=None):
     """Thuật toán Breadth-First Search phiên bản Early-Goal Test cho bài toán 8-puzzle.
     """
-    node = Node(problem.start, None, None, 0)
+    from puzzle_core import is_solvable
+    if not is_solvable(problem.start, problem.goal):
+        return False, 0
+
+    node = Node(problem.start, None, None, 0, 0, 0)
 
     if problem.goal_test(node.state):
         return node, 0

@@ -15,6 +15,8 @@ from dfs import dfs as _dfs
 from ids import ids as _ids
 from ucs import ucs as _ucs
 from gs import gs as _gs
+from a_star import a_star as _a_star
+from ida_star import ida_star as _ida_star
 
 ALGORITHMS = {
     "BFS": _bfs,
@@ -22,7 +24,9 @@ ALGORITHMS = {
     "DFS": _dfs,
     "IDS": _ids,
     "UCS": _ucs,
-    "GS": _gs
+    "GS": _gs,
+    "A-Star": _a_star,
+    "IDA-Star": _ida_star
 }
 
 class StopSearchException(Exception):
@@ -45,6 +49,8 @@ class PuzzleModel:
                 "parent": copy.deepcopy(node.parent.state) if node.parent else None,
                 "action": node.action,
                 "path_cost": node.path_cost,
+                "g_cost": node.g_cost,
+                "h_cost": node.h_cost
             })
         return cb
 
@@ -352,23 +358,21 @@ class PuzzleView:
                   background=[("selected", C["log_sel"])],
                   foreground=[("selected", C["text"])])
 
-        cols = ("#", "State (ma trận)", "Parent State", "Action", "Path Cost")
+        cols = ("#", "State (ma trận)", "Parent State", "Action", "Path Cost", "G_Cost", "H_Cost")
 
         self.tree = ttk.Treeview(log_panel, columns=cols, show="headings", style="Log.Treeview", height=8)
 
-        widths = [42, 265, 265, 76, 76]
+        widths = [40, 262, 262, 40, 40, 40, 40]
 
         for col, w in zip(cols, widths):
             self.tree.heading(col, text=col)
             self.tree.column(col, width=w, minwidth=w, anchor="w")
 
         vsb = ttk.Scrollbar(log_panel, orient="vertical",   command=self.tree.yview)
-        hsb = ttk.Scrollbar(log_panel, orient="horizontal", command=self.tree.xview)
 
-        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        self.tree.configure(yscrollcommand=vsb.set)
         vsb.pack(side="right", fill="y")
         self.tree.pack(side="left", fill="both", expand=True)
-        hsb.pack(side="bottom", fill="x")
 
     def update_board(self, matrix):
         for i in range(3):
@@ -418,9 +422,11 @@ class PuzzleView:
             p  = self._mat_str(e["parent"]) if e["parent"] else "—"
             a  = (e["action"] or "—").upper()
             c  = str(e["path_cost"])
+            g = str(e["g_cost"])
+            h = str(e["h_cost"])
 
             tag = "ra" if (offset+idx)%2==0 else "rb"
-            self.tree.insert("", "end", values=(offset+idx+1, s, p, a, c), tags=(tag,))
+            self.tree.insert("", "end", values=(offset+idx+1, s, p, a, c, g, h), tags=(tag,))
 
         self.tree.tag_configure("ra", background=C["log_row_a"])
         self.tree.tag_configure("rb", background=C["log_row_b"])

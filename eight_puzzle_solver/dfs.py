@@ -3,7 +3,11 @@ from puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix
 def dfs(problem: Problem, log_cb=None):
     """Thuật toán Depth-First Search phiên bản Early-Goal Test cho bài toán 8-puzzle.
     """
-    node = Node(problem.start, None, None, 0)
+    from puzzle_core import is_solvable
+    if not is_solvable(problem.start, problem.goal):
+        return False, 0
+
+    node = Node(problem.start, None, None, 0, 0, 0)
 
     if node.state == problem.goal:
         return node, 0

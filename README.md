@@ -10,7 +10,7 @@
 ttnt/
 ├── README.md
 │
-├── 8_puzzle_solver/                # ★ Module chính (MVC, GUI Tkinter, đa thuật toán) – xem chi tiết bên dưới
+├── eight_puzzle_solver/              # ★ Module chính (MVC, GUI Tkinter, đa thuật toán) – xem chi tiết bên dưới
 │
 ├── buoi_2/                         # Buổi 2 – Khám phá bài toán (bài tập ảnh chụp)
 │   └── bt1.jpg
@@ -40,19 +40,20 @@ ttnt/
 
 ---
 
-## Module chính: `8_puzzle_solver/`
+## Module chính: `eight_puzzle_solver/`
 
 Module này là phiên bản hoàn chỉnh nhất, áp dụng kiến trúc **MVC (Model–View–Controller)** và hỗ trợ nhiều thuật toán tìm kiếm thông qua một **registry tập trung**.
 
 ```
-8_puzzle_solver/
+eight_puzzle_solver/
 │
 ├── puzzle_core.py          # Lớp dùng chung (Node, Problem) và các hàm tiện ích
 ├── bfs.py                  # Thuật toán BFS (2 biến thể: late / early goal-test)
 ├── dfs.py                  # Thuật toán DFS (graph-search có tập visited)
 ├── ids.py                  # Thuật toán IDS (depth-limited + iterative deepening)
 ├── ucs.py                  # Thuật toán UCS (Uniform Cost Search)
-└── 8_puzzle_solver.py      # Ứng dụng chính: GUI Tkinter + MVC Controller
+├── ida_star.py             # Thuật toán IDA* (Iterative Deepening A*)
+└── eight_puzzle_solver.py  # Ứng dụng chính: GUI Tkinter + MVC Controller
 ```
 
 ### Vai trò từng file
@@ -64,88 +65,11 @@ Module này là phiên bản hoàn chỉnh nhất, áp dụng kiến trúc **MVC
 | `dfs.py` | Hàm `dfs()` — DFS có tập `reached` tránh lặp vô hạn |
 | `ids.py` | Hàm `ids()` — IDS tối ưu bộ nhớ; hàm nội bộ `_depth_limited_search()` |
 | `ucs.py` | Hàm `ucs()` — Thuật toán tìm kiếm chi phí đồng nhất (Uniform Cost Search) |
-| `8_puzzle_solver.py` | `PuzzleModel` (logic), `PuzzleView` (GUI), `PuzzleController` (điều phối); registry `ALGORITHMS` ánh xạ tên → hàm |
+| `ida_star.py` | Hàm `ida_star()` — Thuật toán tìm kiếm IDA* kết hợp heuristic để tối ưu |
+| `eight_puzzle_solver.py` | `PuzzleModel` (logic), `PuzzleView` (GUI), `PuzzleController` (điều phối); registry `ALGORITHMS` ánh xạ tên → hàm |
 
 ---
 
-## Quy trình thêm thuật toán mới vào `8_puzzle_solver.py`
-
-### Bước 1 – Tạo file thuật toán (`my_algo.py`)
-
-Mỗi file thuật toán **phải** tuân theo khung chuẩn sau:
-
-```python
-"""<Tên đầy đủ thuật toán> cho bài toán 8-puzzle.
-
-Mô tả ngắn: nguyên lý hoạt động, đặc điểm (tối ưu / không tối ưu, ...).
-"""
-
-from puzzle_core import Node, Problem, tuple_matrix, expand   # import những gì cần thiết
-
-
-def my_algo(problem: Problem, log_cb=None):
-    """<Tên hàm bằng snake_case, trùng với tên file>.
-
-    Chữ ký (signature) PHẢI giữ nguyên: nhận `problem` và `log_cb`.
-
-    Parameters
-    ----------
-    problem : Problem
-        Đối tượng chứa `problem.start`, `problem.goal`, `problem.goal_test()`,
-        `problem.get_actions()`.
-    log_cb  : callable | None
-        Callback ``log_cb(child_node)`` do PuzzleModel cung cấp để ghi log
-        từng trạng thái con được sinh ra.  Truyền vào `expand()` / `child_node()`.
-
-    Returns
-    -------
-    tuple[Node | False, int]
-        - ``(goal_node, visited_count)`` nếu tìm được lời giải.
-        - ``(False, visited_count)``     nếu không tồn tại lời giải.
-    """
-    # ── Khởi tạo ─────────────────────────────────────────────────────────
-    root = Node(problem.start, None, None, 0)
-    # ... khởi tạo frontier, tập visited, ...
-
-    # ── Vòng lặp tìm kiếm chính ──────────────────────────────────────────
-    while frontier:
-        node = ...                              # lấy node tiếp theo
-        if node.state == problem.goal:
-            return node, len(visited)           # ← trả về đúng format
-
-        for child in expand(problem, node, log_cb):   # log_cb PHẢI được truyền vào expand()
-            ...
-
-    return False, len(visited)                  # ← không tìm được nghiệm
-```
-
-> **Lưu ý quan trọng:**
-> - `log_cb` **phải** được truyền xuống `expand()` hoặc `child_node()` — đây là cơ chế duy nhất để GUI ghi log và cơ chế dừng giữa chừng (Stop) hoạt động.
-> - Hàm **không được** import Tkinter hay tương tác trực tiếp với GUI.
-> - Hàm **phải** trả về đúng kiểu `(Node | False, int)`.
-
----
-
-### Bước 2 – Đăng ký vào registry trong `8_puzzle_solver.py`
-
-```python
-# 8_puzzle_solver.py  (đầu file, ngay sau các import hiện có)
-
-from my_algo import my_algo as _my_algo          # 1. Import hàm
-
-ALGORITHMS = {
-    "BFS":      _bfs,
-    "BFS_V2":   _bfs_v2,
-    "DFS":      _dfs,
-    "IDS":      _ids,
-    "UCS":      _ucs,
-    "MY_ALGO":  _my_algo,                        # 2. Thêm vào dict
-}
-```
-
-Chỉ cần hai thay đổi trên, thuật toán mới sẽ **tự động xuất hiện** trong Combobox của giao diện mà không cần sửa thêm bất kỳ dòng nào trong `PuzzleModel`, `PuzzleView`, hay `PuzzleController`.
-
----
 
 ## Yêu cầu cài đặt
 
@@ -156,6 +80,6 @@ python -m pip install tk   # thường đã đi kèm với Python 3.x
 Chạy ứng dụng:
 
 ```bash
-cd 8_puzzle_solver
-python 8_puzzle_solver.py
+cd eight_puzzle_solver
+python eight_puzzle_solver.py
 ```

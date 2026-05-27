@@ -3,7 +3,7 @@ from puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix
 def _depth_limited_search(problem: Problem, limit, log_cb=None):
     """Thuật toán Depth-First Search phiên bản Depth-Limit Test cho bài toán 8-puzzle.
     """
-    node = Node(problem.start, None, None, 0)
+    node = Node(problem.start, None, None, 0, 0, 0)
 
     if problem.goal_test(node.state):
         return node, {tuple_matrix(problem.start)}
@@ -30,6 +30,10 @@ def _depth_limited_search(problem: Problem, limit, log_cb=None):
 def ids(problem: Problem, log_cb=None):
     """Thuật toán Interative-Deepening Search cho bài toán 8-puzzle.
     """
+    from puzzle_core import is_solvable
+    if not is_solvable(problem.start, problem.goal):
+        return False, 0
+
     total_visited = set()
     for depth in range(1000):
         result, visited = _depth_limited_search(problem, depth, log_cb)
