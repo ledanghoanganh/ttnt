@@ -17,6 +17,8 @@ from ucs import ucs as _ucs
 from gs import gs as _gs
 from a_star import a_star as _a_star
 from ida_star import ida_star as _ida_star
+from simple_hill_climbing import simple_hill_climbing as _simple_hill_climbing
+from steepest_ascent_hill_climbing import steepest_ascent_hill_climbing as _steepest_ascent_hill_climbing
 
 ALGORITHMS = {
     "BFS": _bfs,
@@ -26,7 +28,9 @@ ALGORITHMS = {
     "UCS": _ucs,
     "GS": _gs,
     "A-Star": _a_star,
-    "IDA-Star": _ida_star
+    "IDA-Star": _ida_star,
+    "Simple Hill-Climbing": _simple_hill_climbing,
+    "Steepest Ascent Hill-Climbing": _steepest_ascent_hill_climbing,
 }
 
 class StopSearchException(Exception):
