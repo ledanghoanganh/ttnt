@@ -36,6 +36,7 @@ def local_beam_search(problem: Problem, log_cb=None, k=2):
         neighbor_states = sorted(neighbor_states, key=lambda x: x.h_cost)
         best_current = min(current_states, key=lambda x: x.h_cost)
         
+        # Giới hạn để tránh vòng lặp vô tận làm treo app tuy hơi sai thuật toán gốc
         if neighbor_states[0].h_cost >= best_current.h_cost:
             return False, count
             
