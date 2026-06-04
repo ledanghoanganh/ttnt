@@ -4,7 +4,7 @@ from eight_puzzle_solver.puzzle_core import Problem, Node, random_matrix, expand
 def simple_hill_climbing(problem: Problem, log_cb=None):
     """Thuật toán Simple Hill Climbing cho bài toán 8-puzzle.
 
-    Tại mỗi bước, thuật toán sẽ chọn trạng thái con có giá trị đánh giá tốt nhất (theo hàm heuristic) để tiếp tục.
+    Tại mỗi bước, thuật toán sẽ chọn trạng thái con đầu tiên có giá trị đánh giá tốt hơn (theo hàm heuristic) để tiếp tục.
     Nếu không có trạng thái con nào tốt hơn trạng thái hiện tại, thuật toán sẽ dừng lại.
     """
     current_node = Node(problem.start, None, None, 0, 0, manhattan_distance(problem.start, problem.goal))

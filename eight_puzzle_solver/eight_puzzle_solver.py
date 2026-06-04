@@ -19,6 +19,9 @@ from a_star import a_star as _a_star
 from ida_star import ida_star as _ida_star
 from simple_hill_climbing import simple_hill_climbing as _simple_hill_climbing
 from steepest_ascent_hill_climbing import steepest_ascent_hill_climbing as _steepest_ascent_hill_climbing
+from stochastic_hill_climbing import stochastic_hill_climbing as _stochastic_hill_climbing
+from random_restart_hill_climbing import random_restart_hill_climbing as _random_restart_hill_climbing
+from local_beam_search import local_beam_search as _local_beam_search
 
 ALGORITHMS = {
     "BFS": _bfs,
@@ -31,6 +34,9 @@ ALGORITHMS = {
     "IDA-Star": _ida_star,
     "Simple Hill-Climbing": _simple_hill_climbing,
     "Steepest Ascent Hill-Climbing": _steepest_ascent_hill_climbing,
+    "Stochastic Hill-Climbing": _stochastic_hill_climbing,
+    "Random Restart Hill-Climbing": _random_restart_hill_climbing,
+    "Local Beam Search": _local_beam_search,
 }
 
 class StopSearchException(Exception):

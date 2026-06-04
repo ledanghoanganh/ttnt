@@ -32,3 +32,4 @@ Thumbs.db
 # Caches
 .cache/
 .pytest_cache/
+.aider*
