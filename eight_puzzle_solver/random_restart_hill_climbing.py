@@ -6,13 +6,12 @@ def random_restart_hill_climbing(problem: Problem, log_cb=None):
     """Thuật toán Random Restart Hill Climbing cho bài toán 8-puzzle.
     """
     MAX_RESTART = 1000
-    res, total_count = False, 0
+    res, count = False, 0
     for _ in range(MAX_RESTART):
-        res, count = stochastic_hill_climbing(problem, log_cb)
-        total_count += count
         if res != False:
             break
-    return res, total_count
+        res, count = stochastic_hill_climbing(problem)
+    return res, count
 
 if __name__ == "__main__":
     matrix = random_matrix()

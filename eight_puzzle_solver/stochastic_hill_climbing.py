@@ -23,7 +23,7 @@ def stochastic_hill_climbing(problem: Problem, log_cb=None):
                 better_neighbors.append(next_node)
 
         if len(better_neighbors) == 0:
-            return False, count
+            return current_node, count
         else:
             current_node = random.choice(better_neighbors)
             

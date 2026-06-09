@@ -22,29 +22,37 @@ from steepest_ascent_hill_climbing import steepest_ascent_hill_climbing as _stee
 from stochastic_hill_climbing import stochastic_hill_climbing as _stochastic_hill_climbing
 from random_restart_hill_climbing import random_restart_hill_climbing as _random_restart_hill_climbing
 from local_beam_search import local_beam_search as _local_beam_search
+from simulated_annealing import simulated_annealing as _simulated_annealing
+
+from complex_a_star_missing_input import complex_a_star_missing_input as _complex_a_star_missing_input
+from complex_a_star_missing_goal import complex_a_star_missing_goal as _complex_a_star_missing_goal
+from complex_a_star_missing_both import complex_a_star_missing_both as _complex_a_star_missing_both
 
 ALGORITHMS = {
-    "BFS": _bfs,
-    "BFS_V2": _bfs_v2,
-    "DFS": _dfs,
-    "IDS": _ids,
-    "UCS": _ucs,
-    "GS": _gs,
-    "A-Star": _a_star,
-    "IDA-Star": _ida_star,
-    "Simple Hill-Climbing": _simple_hill_climbing,
-    "Steepest Ascent Hill-Climbing": _steepest_ascent_hill_climbing,
-    "Stochastic Hill-Climbing": _stochastic_hill_climbing,
-    "Random Restart Hill-Climbing": _random_restart_hill_climbing,
-    "Local Beam Search": _local_beam_search,
+    "BFS": {"func": _bfs, "type": "normal"},
+    "BFS_V2": {"func": _bfs_v2, "type": "normal"},
+    "DFS": {"func": _dfs, "type": "normal"},
+    "IDS": {"func": _ids, "type": "normal"},
+    "UCS": {"func": _ucs, "type": "normal"},
+    "GS": {"func": _gs, "type": "normal"},
+    "A-Star": {"func": _a_star, "type": "normal"},
+    "IDA-Star": {"func": _ida_star, "type": "normal"},
+    "Simple Hill-Climbing": {"func": _simple_hill_climbing, "type": "normal"},
+    "Steepest Ascent Hill-Climbing": {"func": _steepest_ascent_hill_climbing, "type": "normal"},
+    "Stochastic Hill-Climbing": {"func": _stochastic_hill_climbing, "type": "normal"},
+    "Random Restart Hill-Climbing": {"func": _random_restart_hill_climbing, "type": "normal"},
+    "Local Beam Search": {"func": _local_beam_search, "type": "normal"},
+    "Simulated Annealing": {"func": _simulated_annealing, "type": "normal"},
+
+    "Complex A* (Khuyết Input)": {"func": _complex_a_star_missing_input, "type": "missing_input"},
+    "Complex A* (Khuyết Goal)": {"func": _complex_a_star_missing_goal, "type": "missing_goal"},
+    "Complex A* (Khuyết Input & Goal)": {"func": _complex_a_star_missing_both, "type": "missing_both"},
 }
 
 class StopSearchException(Exception):
     pass
 
 class PuzzleModel:
-    GOAL = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
-
     def __init__(self):
         self.reached_count = 0
         self.solution_nodes = []
@@ -54,36 +62,27 @@ class PuzzleModel:
         def cb(node):
             if stop_check_fn and stop_check_fn():
                 raise StopSearchException()
+            st = getattr(node, 'belief_state', node.state)
+            pt = None
+            if node.parent:
+                pt = getattr(node.parent, 'belief_state', node.parent.state)
             self.log_entries.append({
-                "state": copy.deepcopy(node.state),
-                "parent": copy.deepcopy(node.parent.state) if node.parent else None,
+                "state": copy.deepcopy(st),
+                "parent": copy.deepcopy(pt),
                 "action": node.action,
                 "path_cost": node.path_cost,
-                "g_cost": node.g_cost,
-                "h_cost": node.h_cost
+                "g_cost": getattr(node, 'g_cost', 0),
+                "h_cost": getattr(node, 'h_cost', 0)
             })
         return cb
 
-    def solve(self, algo_name, start, stop_check_fn=None):
-        self.log_entries = []
-        self.solution_nodes = []
-        fn = ALGORITHMS[algo_name]
-        try:
-            result, count = fn(Problem(start, self.GOAL), self._log_cb(stop_check_fn))
-            self.reached_count = count
-            if result and result != "cutoff":
-                path = []
-                n = result
-                while n.parent:
-                    path.append(n)
-                    n = n.parent
-                path.reverse()
-                self.solution_nodes = path
-                return True
-        except StopSearchException:
-            self.reached_count = len(self.log_entries)
-            return "stopped"
-        return False
+    def _get_path(self, n):
+        path = []
+        while n:
+            path.append(n)
+            n = n.parent
+        path.reverse()
+        return path
 
 C = {
     "win":          "#f0f0f0",
@@ -94,18 +93,15 @@ C = {
     "text":         "#2d3748",
     "text_dim":     "#718096",
     "text_head":    "#4a5568",
-
     "accent":       "#3182ce",
     "accent2":      "#4a5568",
     "success":      "#38a169",
     "warning":      "#dd6b20",
     "danger":       "#e53e3e",
-
     "tile_bg":      "#ebf8ff",
     "tile_num":     "#2b6cb0",
     "tile_empty":   "#edf2f7",
     "tile_border":  "#cbd5e0",
-
     "log_head":     "#edf2f7",
     "log_row_a":    "#ffffff",
     "log_row_b":    "#f7fafc",
@@ -125,29 +121,15 @@ FONT = {
 class ScrollableMovesLabel:
     def __init__(self, parent, font, fg, bg, height=2):
         self.frame = tk.Frame(parent, bg=bg)
-
         self.text_widget = tk.Text(
-            self.frame,
-            font=font,
-            fg=fg,
-            bg=bg,
-            relief="flat",
-            bd=0,
-            height=height,
-            wrap="word",
-            state="disabled",
-            highlightthickness=0
+            self.frame, font=font, fg=fg, bg=bg, relief="flat", bd=0, height=height, wrap="word", state="disabled", highlightthickness=0
         )
-
         self.sb = ttk.Scrollbar(self.frame, orient="vertical", command=self.text_widget.yview)
         self.text_widget.configure(yscrollcommand=self.sb.set)
-
         self.text_widget.pack(side="left", fill="both", expand=True, padx=(4, 0))
         self.sb.pack(side="right", fill="y")
-
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
-
     def config(self, text=None, **kwargs):
         if text is not None:
             self.text_widget.config(state="normal")
@@ -178,30 +160,22 @@ class PuzzleView:
 
     def _lbl(self, parent, text, font=None, fg=None, **kw):
         kw.setdefault("bg", parent.cget("bg"))
-
         return tk.Label(parent, text=text, font=font or FONT["label"], fg=fg or C["text"], **kw)
 
     def _btn(self, parent, text, cmd, bg=None, fg="#ffffff", **kw):
         bg = bg or C["accent"]
-
-        b = tk.Button(parent, text=text, command=cmd,
-                      font=FONT["btn"], bg=bg, fg=fg,
-                      relief="flat", bd=0, padx=12, pady=8,
-                      activebackground=bg, activeforeground=fg,
-                      cursor="hand2", **kw)
-
+        b = tk.Button(parent, text=text, command=cmd, font=FONT["btn"], bg=bg, fg=fg, relief="flat", bd=0, padx=12, pady=8, activebackground=bg, activeforeground=fg, cursor="hand2", **kw)
         return b
 
     def _div(self, parent, orient="h", pad=8):
         if orient == "h":
             tk.Frame(parent, bg=C["border"], height=1).pack(fill="x", padx=pad, pady=6)
-
         else:
             tk.Frame(parent, bg=C["border"], width=1).pack(fill="y", padx=6, pady=pad, side="left")
 
-    def _navigate(self, row, col):
+    def _navigate(self, row, col, entries):
         if 0 <= row < 3 and 0 <= col < 3:
-            e = self.entries[row][col]
+            e = entries[row][col]
             e.focus_set()
             e.select_range(0, tk.END)
             e.icursor(tk.END)
@@ -212,6 +186,7 @@ class PuzzleView:
         self._left(body)
         self._right(body)
         self._center_col(body)
+        self._on_algo_change()
 
     def _left(self, body):
         left = self._fr(body, width=220)
@@ -223,7 +198,7 @@ class PuzzleView:
         self.combo = ttk.Combobox(left, values=list(ALGORITHMS.keys()), state="readonly", font=FONT["label"])
         self.combo.set(self.ctrl._algo)
         self.combo.pack(fill="x", padx=12, pady=(0, 8))
-        self.combo.bind("<<ComboboxSelected>>", lambda e: self.ctrl.select_algo(self.combo.get()))
+        self.combo.bind("<<ComboboxSelected>>", self._on_algo_change)
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -260,48 +235,202 @@ class PuzzleView:
         self._lbl(parent, title, font=FONT["title"], fg=C["accent"]).pack(padx=14, pady=(10, 4), anchor="w")
 
     def _right(self, body):
-        right = self._fr(body, width=240)
+        right = self._fr(body, width=280)
         right.pack(side="right", fill="y", padx=(8, 0), pady=2)
         right.pack_propagate(False)
 
         tk.Frame(right, bg=C["border"], width=1).pack(side="left", fill="y")
         
-        self._section(right, "ĐẦU VÀO (INPUT)")
-        gf = self._fr(right)
-        gf.pack(pady=4)
-        self.entries = [[None]*3 for _ in range(3)]
+        self._section(right, "ĐẦU VÀO & MỤC TIÊU")
+        self.nb = ttk.Notebook(right)
+        self.nb.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # --- Start States Tab ---
+        tab_start = self._fr(self.nb)
+        self.nb.add(tab_start, text="Start States")
+        
+        ctrl_frame = self._fr(tab_start)
+        ctrl_frame.pack(fill="x", pady=5)
+        
+        self.state_combo = ttk.Combobox(ctrl_frame, state="readonly", width=12, font=FONT["label"])
+        self.state_combo.pack(side="left", padx=5)
+        self.state_combo.bind("<<ComboboxSelected>>", self._on_state_selected)
+        
+        btn_add = tk.Button(ctrl_frame, text="+", command=self._add_state, bg=C["success"], fg="white", relief="flat", width=2)
+        btn_add.pack(side="left", padx=2)
+        btn_del = tk.Button(ctrl_frame, text="-", command=self._del_state, bg=C["danger"], fg="white", relief="flat", width=2)
+        btn_del.pack(side="left", padx=2)
 
+        self.start_entries = [[None]*3 for _ in range(3)]
+        grid_frame_start = self._fr(tab_start)
+        grid_frame_start.pack(pady=10)
+        
         for i in range(3):
             for j in range(3):
-                e = tk.Entry(gf, width=3, font=("Segoe UI", 20, "bold"),
-                             justify="center",
-                             bg=C["tile_bg"], fg=C["tile_num"],
-                             insertbackground=C["accent"],
-                             relief="solid", bd=1,
-                             highlightthickness=2,
-                             highlightbackground=C["border"],
+                e = tk.Entry(grid_frame_start, width=3, font=("Segoe UI", 20, "bold"),
+                             justify="center", bg=C["tile_bg"], fg=C["tile_num"],
+                             insertbackground=C["accent"], relief="solid", bd=1,
+                             highlightthickness=2, highlightbackground=C["border"],
                              highlightcolor=C["accent"])
-
                 e.grid(row=i, column=j, padx=3, pady=3, ipady=4)
+                self.start_entries[i][j] = e
+                e.bind("<Up>",    lambda event, r=i, c=j: self._navigate(r - 1, c, self.start_entries))
+                e.bind("<Down>",  lambda event, r=i, c=j: self._navigate(r + 1, c, self.start_entries))
+                e.bind("<Left>",  lambda event, r=i, c=j: self._navigate(r, c - 1, self.start_entries))
+                e.bind("<Right>", lambda event, r=i, c=j: self._navigate(r, c + 1, self.start_entries))
+                
+        self._lbl(tab_start, "Dùng '?' cho ô khuyết state", font=FONT["small"], fg=C["text_dim"]).pack()
 
-                self.entries[i][j] = e
+        # --- Goal State Tab ---
+        tab_goal = self._fr(self.nb)
+        self.nb.add(tab_goal, text="Goal State")
+        
+        ctrl_frame_goal = self._fr(tab_goal)
+        ctrl_frame_goal.pack(fill="x", pady=5)
+        
+        self.goal_combo = ttk.Combobox(ctrl_frame_goal, state="readonly", width=12, font=FONT["label"])
+        self.goal_combo.pack(side="left", padx=5)
+        self.goal_combo.bind("<<ComboboxSelected>>", self._on_goal_selected)
+        
+        btn_add_goal = tk.Button(ctrl_frame_goal, text="+", command=self._add_goal, bg=C["success"], fg="white", relief="flat", width=2)
+        btn_add_goal.pack(side="left", padx=2)
+        btn_del_goal = tk.Button(ctrl_frame_goal, text="-", command=self._del_goal, bg=C["danger"], fg="white", relief="flat", width=2)
+        btn_del_goal.pack(side="left", padx=2)
+        
+        self.goal_entries = [[None]*3 for _ in range(3)]
+        grid_frame_goal = self._fr(tab_goal)
+        grid_frame_goal.pack(pady=10)
+        
+        for i in range(3):
+            for j in range(3):
+                e = tk.Entry(grid_frame_goal, width=3, font=("Segoe UI", 20, "bold"),
+                             justify="center", bg=C["tile_bg"], fg=C["tile_num"],
+                             insertbackground=C["accent"], relief="solid", bd=1,
+                             highlightthickness=2, highlightbackground=C["border"],
+                             highlightcolor=C["accent"])
+                e.grid(row=i, column=j, padx=3, pady=3, ipady=4)
+                self.goal_entries[i][j] = e
+                e.bind("<Up>",    lambda event, r=i, c=j: self._navigate(r - 1, c, self.goal_entries))
+                e.bind("<Down>",  lambda event, r=i, c=j: self._navigate(r + 1, c, self.goal_entries))
+                e.bind("<Left>",  lambda event, r=i, c=j: self._navigate(r, c - 1, self.goal_entries))
+                e.bind("<Right>", lambda event, r=i, c=j: self._navigate(r, c + 1, self.goal_entries))
+                
+        self._lbl(tab_goal, "Dùng '?' cho ô khuyết goal", font=FONT["small"], fg=C["text_dim"]).pack()
+        
+        self.goal_states_data = [] 
+        self.current_goal_idx = 0
+        
+        self._add_goal(default=True)
+        self._add_goal(default=False)
+        self.goal_combo.current(0)
+        self._on_goal_selected()
 
-                e.bind("<Up>",    lambda event, r=i, c=j: self._navigate(r - 1, c))
-                e.bind("<Down>",  lambda event, r=i, c=j: self._navigate(r + 1, c))
-                e.bind("<Left>",  lambda event, r=i, c=j: self._navigate(r, c - 1))
-                e.bind("<Right>", lambda event, r=i, c=j: self._navigate(r, c + 1))
+        self.start_states_data = [] 
+        self.current_state_idx = 0
+        
+        self._add_state()
+        self._add_state()
+        self.state_combo.current(0)
+        self._on_state_selected()
 
         self._div(right)
 
-        self.btn_random = self._btn(right, "⟳   Tạo ngẫu nhiên", self.ctrl.generate_random, bg=C["panel_inset"], fg=C["text"])
+        self.btn_random = self._btn(right, "⟳   Random Current", self.ctrl.generate_random, bg=C["panel_inset"], fg=C["text"])
         self.btn_random.pack(fill="x", padx=14, pady=3)
-        self.btn_solve = self._btn(right, "▶   Giải", self.ctrl.start_solving, bg=C["accent"])
-        self.btn_solve.pack(fill="x", padx=14, pady=3)
+        self.btn_solve_single = self._btn(right, "▶   Giải State Đang Chọn", self.ctrl.start_solving_single, bg=C["success"])
+        self.btn_solve_single.pack(fill="x", padx=14, pady=3)
+        self.btn_solve_all = self._btn(right, "▶▶  Giải Tất Cả", self.ctrl.start_solving_all, bg=C["accent"])
+        self.btn_solve_all.pack(fill="x", padx=14, pady=3)
         self.btn_stop = self._btn(right, "⏹   Dừng", self.ctrl.stop_solving, bg=C["panel_inset"], fg=C["text_dim"])
         self.btn_stop.pack(fill="x", padx=14, pady=3)
-        self.btn_stop.config(state="disabled")
-        self.btn_clr = self._btn(right, "✕   Xoá log", self.ctrl.clear_log, bg=C["panel_inset"], fg=C["text_dim"])
+        self.btn_clr  = self._btn(right, "✖   Xóa Log", self.clear_log, bg=C["panel_inset"], fg=C["text"])
         self.btn_clr.pack(fill="x", padx=14, pady=3)
+
+    def _add_state(self):
+        new_vars = [[tk.StringVar() for _ in range(3)] for _ in range(3)]
+        for i in range(3):
+            for j in range(3):
+                new_vars[i][j].trace_add("write", lambda *args: self.ctrl.sync_board_with_inputs())
+        self.start_states_data.append(new_vars)
+        self._update_state_combo()
+        self.state_combo.current(len(self.start_states_data) - 1)
+        self._on_state_selected()
+
+    def _del_state(self):
+        if len(self.start_states_data) > 1:
+            idx = self.state_combo.current()
+            self.start_states_data.pop(idx)
+            self._update_state_combo()
+            self.state_combo.current(max(0, idx - 1))
+            self._on_state_selected()
+
+    def _update_state_combo(self):
+        self.state_combo["values"] = [f"State {i+1}" for i in range(len(self.start_states_data))]
+
+    def _on_state_selected(self, event=None):
+        idx = self.state_combo.current()
+        if idx >= 0:
+            for i in range(3):
+                for j in range(3):
+                    self.start_entries[i][j].config(textvariable=self.start_states_data[idx][i][j])
+            self.current_state_idx = idx
+            if hasattr(self, 'ctrl') and self.ctrl:
+                self.ctrl.sync_board_with_inputs()
+
+    def _add_goal(self, default=False):
+        new_vars = [[tk.StringVar() for _ in range(3)] for _ in range(3)]
+        if default:
+            default_goal = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+            for i in range(3):
+                for j in range(3):
+                    new_vars[i][j].set(str(default_goal[i][j]))
+        for i in range(3):
+            for j in range(3):
+                new_vars[i][j].trace_add("write", lambda *args: self.ctrl.sync_board_with_inputs())
+        self.goal_states_data.append(new_vars)
+        self._update_goal_combo()
+        self.goal_combo.current(len(self.goal_states_data) - 1)
+        self._on_goal_selected()
+
+    def _del_goal(self):
+        if len(self.goal_states_data) > 1:
+            idx = self.goal_combo.current()
+            self.goal_states_data.pop(idx)
+            self._update_goal_combo()
+            self.goal_combo.current(max(0, idx - 1))
+            self._on_goal_selected()
+
+    def _update_goal_combo(self):
+        self.goal_combo["values"] = [f"Goal {i+1}" for i in range(len(self.goal_states_data))]
+
+    def _on_goal_selected(self, event=None):
+        idx = self.goal_combo.current()
+        if idx >= 0:
+            for i in range(3):
+                for j in range(3):
+                    self.goal_entries[i][j].config(textvariable=self.goal_states_data[idx][i][j])
+            self.current_goal_idx = idx
+            if hasattr(self, 'ctrl') and self.ctrl:
+                self.ctrl.sync_board_with_inputs()
+
+    def _on_algo_change(self, event=None):
+        algo_name = self.combo.get()
+        if algo_name in ALGORITHMS:
+            algo_type = ALGORITHMS[algo_name]["type"]
+            is_complex = algo_type.startswith("missing_")
+            
+            if is_complex:
+                self.board_frame_2.pack(side="left", padx=10, fill="y")
+                self.btn_solve_single.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+                self.btn_solve_all.config(state="normal", bg=C["accent"], fg="#ffffff")
+            else:
+                self.board_frame_2.pack_forget()
+                self.btn_solve_single.config(state="normal", bg=C["success"], fg="#ffffff")
+                self.btn_solve_all.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+                
+            if hasattr(self, 'ctrl') and self.ctrl:
+                self.ctrl.set_algorithm(algo_name)
+                self.ctrl.sync_board_with_inputs()
 
     def _center_col(self, body):
         center = self._fr(body, bg=C["win"])
@@ -310,20 +439,39 @@ class PuzzleView:
         board_panel = self._fr(center, bg=C["panel"])
         board_panel.pack(fill="x")
         board_wrap = self._fr(board_panel, bg=C["panel"])
-        board_wrap.pack(pady=20)
+        board_wrap.pack(pady=16)
 
         self._lbl(board_wrap, "TRẠNG THÁI BÀN CỜ", font=FONT["title"], fg=C["accent"]).pack(pady=(0, 12))
 
-        tile_outer = tk.Frame(board_wrap, bg=C["tile_border"], bd=0)
-        tile_outer.pack()
-
-        self.board_labels = [[None]*3 for _ in range(3)]
-
+        boards_container = tk.Frame(board_wrap, bg=C["panel"])
+        boards_container.pack()
+        
+        self.board_labels_1 = [[None]*3 for _ in range(3)]
+        self.board_labels_2 = [[None]*3 for _ in range(3)]
+        
+        self.board_frame_1 = tk.Frame(boards_container, bg=C["panel"])
+        self.board_frame_1.pack(side="left", padx=10)
+        self.lbl_state1 = self._lbl(self.board_frame_1, "Bàn cờ 1", font=FONT["label"], fg=C["text"])
+        self.lbl_state1.pack(pady=(0,4))
+        self.tile_outer1 = tk.Frame(self.board_frame_1, bg=C["tile_border"], bd=0)
+        self.tile_outer1.pack()
         for i in range(3):
             for j in range(3):
-                lbl = tk.Label(tile_outer, text="", width=3, height=1, font=FONT["tile"], bg=C["tile_bg"], fg=C["tile_num"], relief="solid", bd=1)
+                lbl = tk.Label(self.tile_outer1, text="", width=3, height=1, font=FONT["tile"], bg=C["tile_bg"], fg=C["tile_num"], relief="solid", bd=1)
                 lbl.grid(row=i, column=j, padx=2, pady=2)
-                self.board_labels[i][j] = lbl
+                self.board_labels_1[i][j] = lbl
+                
+        self.board_frame_2 = tk.Frame(boards_container, bg=C["panel"])
+        self.board_frame_2.pack(side="left", padx=10)
+        self.lbl_state2 = self._lbl(self.board_frame_2, "Bàn cờ 2", font=FONT["label"], fg=C["text"])
+        self.lbl_state2.pack(pady=(0,4))
+        self.tile_outer2 = tk.Frame(self.board_frame_2, bg=C["tile_border"], bd=0)
+        self.tile_outer2.pack()
+        for i in range(3):
+            for j in range(3):
+                lbl = tk.Label(self.tile_outer2, text="", width=3, height=1, font=FONT["tile"], bg=C["tile_bg"], fg=C["tile_num"], relief="solid", bd=1)
+                lbl.grid(row=i, column=j, padx=2, pady=2)
+                self.board_labels_2[i][j] = lbl
 
         path_frame = self._fr(center, bg=C["panel_alt"])
         path_frame.pack(fill="x", pady=(6, 0))
@@ -384,33 +532,62 @@ class PuzzleView:
         vsb.pack(side="right", fill="y")
         self.tree.pack(side="left", fill="both", expand=True)
 
-    def update_board(self, matrix):
+    def update_board(self, matrix_or_tuple):
+        if isinstance(matrix_or_tuple, tuple) and len(matrix_or_tuple) == 2:
+            mat1, mat2 = matrix_or_tuple
+            self._update_single_board(self.board_labels_1, mat1)
+            self._update_single_board(self.board_labels_2, mat2)
+        else:
+            self._update_single_board(self.board_labels_1, matrix_or_tuple)
+            self._update_single_board(self.board_labels_2, [[0]*3 for _ in range(3)])
+
+    def _update_single_board(self, board_labels, matrix):
         for i in range(3):
             for j in range(3):
                 v = matrix[i][j]
 
                 if v == 0:
-                    self.board_labels[i][j].config(text="", bg=C["tile_empty"])
+                    board_labels[i][j].config(text="", bg=C["tile_empty"])
+                elif v == '?':
+                    board_labels[i][j].config(text="?", bg="#feebc8", fg="#c05621")
                 else:
-                    self.board_labels[i][j].config(text=str(v), bg=C["tile_bg"])
+                    board_labels[i][j].config(text=str(v), bg=C["tile_bg"], fg=C["tile_num"])
 
-    def get_input_matrix(self):
-        matrix = []
-        for i in range(3):
-            row = []
-            for j in range(3):
-                val = self.entries[i][j].get().strip()
-                if not val.isdigit():
-                    return None
-                row.append(int(val))
-            matrix.append(row)
-        return matrix
+    def get_input_states(self):
+        states = []
+        for vars_grid in self.start_states_data:
+            matrix = []
+            for i in range(3):
+                row = []
+                for j in range(3):
+                    val = vars_grid[i][j].get().strip()
+                    if val == '?' or val == '*' or val == '':
+                        row.append('?')
+                    elif val.isdigit() or (val.startswith('-') and val[1:].isdigit()):
+                        row.append(int(val))
+                    else:
+                        return None
+                matrix.append(row)
+            states.append(matrix)
+        return states
 
-    def set_input_matrix(self, matrix):
-        for i in range(3):
-            for j in range(3):
-                self.entries[i][j].delete(0, tk.END)
-                self.entries[i][j].insert(0, str(matrix[i][j]))
+    def get_goal_states(self):
+        goals = []
+        for vars_grid in self.goal_states_data:
+            matrix = []
+            for i in range(3):
+                row = []
+                for j in range(3):
+                    val = vars_grid[i][j].get().strip()
+                    if val == '?' or val == '*' or val == '':
+                        row.append('?')
+                    elif val.isdigit() or (val.startswith('-') and val[1:].isdigit()):
+                        row.append(int(val))
+                    else:
+                        return None
+                matrix.append(row)
+            goals.append(matrix)
+        return goals
 
     def append_log(self, entries, offset=0):
         max_display = 1000
@@ -428,15 +605,27 @@ class PuzzleView:
         display_entries = entries[:allowed]
 
         for idx, e in enumerate(display_entries):
-            s  = self._mat_str(e["state"])
-            p  = self._mat_str(e["parent"]) if e["parent"] else "—"
+            st = e["state"]
+            pt = e["parent"]
             a  = (e["action"] or "—").upper()
             c  = str(e["path_cost"])
             g = str(e["g_cost"])
             h = str(e["h_cost"])
 
             tag = "ra" if (offset+idx)%2==0 else "rb"
-            self.tree.insert("", "end", values=(offset+idx+1, s, p, a, c, g, h), tags=(tag,))
+            
+            if isinstance(st, tuple) and len(st) == 2:
+                s1 = self._mat_str(st[0])
+                s2 = self._mat_str(st[1])
+                p1 = self._mat_str(pt[0]) if pt else "—"
+                p2 = self._mat_str(pt[1]) if pt else "—"
+                
+                self.tree.insert("", "end", values=(offset+idx+1, s1, p1, a, c, g, h), tags=(tag,))
+                self.tree.insert("", "end", values=("", s2, p2, "", "", "", ""), tags=(tag,))
+            else:
+                s  = self._mat_str(st)
+                p  = self._mat_str(pt) if pt else "—"
+                self.tree.insert("", "end", values=(offset+idx+1, s, p, a, c, g, h), tags=(tag,))
 
         self.tree.tag_configure("ra", background=C["log_row_a"])
         self.tree.tag_configure("rb", background=C["log_row_b"])
@@ -459,13 +648,21 @@ class PuzzleView:
 
     def set_solving_state(self, is_solving):
         if is_solving:
-            self.btn_solve.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+            self.btn_solve_single.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+            self.btn_solve_all.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
             self.btn_random.config(state="disabled")
             self.btn_clr.config(state="disabled")
             self.btn_stop.config(state="normal", bg=C["danger"], fg="#ffffff")
             self.btn_stop.bind("<Leave>", lambda e: self.btn_stop.config(bg=C["danger"]))
         else:
-            self.btn_solve.config(state="normal", bg=C["accent"], fg="#ffffff")
+            algo_type = ALGORITHMS.get(self.ctrl._algo, {"type": "normal"})["type"]
+            if algo_type.startswith("missing_"):
+                self.btn_solve_single.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+                self.btn_solve_all.config(state="normal", bg=C["accent"], fg="#ffffff")
+            else:
+                self.btn_solve_single.config(state="normal", bg=C["success"], fg="#ffffff")
+                self.btn_solve_all.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
+            
             self.btn_random.config(state="normal")
             self.btn_clr.config(state="normal")
             self.btn_stop.config(state="disabled", bg=C["panel_inset"], fg=C["text_dim"])
@@ -477,10 +674,9 @@ class PuzzleView:
 
 class PuzzleController:
     def __init__(self, root):
-        self.model = PuzzleModel()
         self._algo = list(ALGORITHMS.keys())[0]
-        self._log_off = 0
         self._is_stopped = False
+        self.model = PuzzleModel()
         self.view = PuzzleView(root, self)
         self.generate_random()
 
@@ -489,11 +685,63 @@ class PuzzleController:
         short = name.split("—")[0].strip()
         self.view.lbl_status.config(text=f"Thuật toán: {short}", fg=C["accent2"])
         self.view.lbl_algo.config(text=f"Thuật toán:  {short}")
+        self.view._on_algo_change()
+
+    def set_algorithm(self, name):
+        self._algo = name
+
+    def sync_board_with_inputs(self, *args):
+        try:
+            all_starts = self.view.get_input_states()
+        except Exception:
+            return
+            
+        if not all_starts:
+            return
+            
+        algo_info = ALGORITHMS.get(self._algo, {"type": "normal"})
+        algo_type = algo_info["type"]
+        is_complex = algo_type.startswith("missing_")
+        
+        if is_complex:
+            if algo_type == "missing_input":
+                starts_arr = all_starts
+            elif algo_type == "missing_goal":
+                starts_arr = [all_starts[self.view.current_state_idx]]
+            else:
+                starts_arr = [all_starts[self.view.current_state_idx]]
+                
+            from complex_core import get_first_two_states
+            init_tuple = get_first_two_states(starts_arr)
+            if init_tuple:
+                self.view.update_board(init_tuple)
+            else:
+                if len(starts_arr) > 0:
+                    self.view.update_board(starts_arr[0])
+        else:
+            idx = self.view.current_state_idx
+            if idx < len(all_starts):
+                self.view.update_board(all_starts[idx])
+            elif len(all_starts) > 0:
+                self.view.update_board(all_starts[0])
 
     def generate_random(self):
         m = random_matrix()
-        self.view.set_input_matrix(m)
-        self.view.update_board(m)
+        current_tab = self.view.nb.index(self.view.nb.select())
+        
+        if current_tab == 0:
+            idx = self.view.state_combo.current()
+            if idx >= 0:
+                for i in range(3):
+                    for j in range(3):
+                        self.view.start_states_data[idx][i][j].set(str(m[i][j]))
+        else:
+            idx = self.view.goal_combo.current()
+            if idx >= 0:
+                for i in range(3):
+                    for j in range(3):
+                        self.view.goal_states_data[idx][i][j].set(str(m[i][j]))
+                        
         self.view.lbl_moves.config(text="")
         self.view.lbl_status.config(text="Ma trận mới đã tạo", fg=C["accent2"])
         self.view.lbl_reached.config(text="States duyệt:  —")
@@ -501,51 +749,145 @@ class PuzzleController:
 
     def clear_log(self):
         self.view.clear_log()
-        self._log_off = 0
 
-    def start_solving(self):
+    def stop_solving(self):
+        self._is_stopped = True
+        self.view.lbl_status.config(text="Đang dừng...", fg=C["danger"])
+
+    def start_solving_single(self):
+        self._start_solving(solve_all=False)
+        
+    def start_solving_all(self):
+        self._start_solving(solve_all=True)
+
+    def _start_solving(self, solve_all=True):
         self.clear_log()
-        mat = self.view.get_input_matrix()
-        if not mat:
-            messagebox.showerror("Lỗi", "Vui lòng nhập đủ các số từ 0-8 hợp lệ.")
+        all_starts = self.view.get_input_states()
+        all_goals = self.view.get_goal_states()
+        
+        if not all_starts or not all_goals:
+            messagebox.showerror("Lỗi", "Vui lòng nhập các số hợp lệ hoặc '?' cho ô khuyết.")
             return
 
-        if sorted(x for r in mat for x in r) != list(range(9)):
-            messagebox.showerror("Lỗi", "Ma trận phải chứa đúng các số 0-8, mỗi số một lần.")
-            return
+        if solve_all:
+            starts = all_starts
+            goals = all_goals
+            lbl_text = f"Đang giải toàn bộ {len(starts)} states"
+        else:
+            idx = self.view.current_state_idx
+            starts = [all_starts[idx]]
+            goal_idx = self.view.current_goal_idx
+            goals = [all_goals[goal_idx]]
+            lbl_text = f"Đang giải State {idx + 1}"
 
         self._is_stopped = False
         self.view.set_solving_state(True)
         self.view.lbl_moves.config(text="")
-        self.view.update_board(mat)
-        short = self._algo.split("—")[0].strip()
-        self.view.lbl_status.config(text=f"Đang giải bằng {short}...\n(Có thể mất vài giây)", fg=C["warning"])
-        threading.Thread(target=self._thread, args=(mat,), daemon=True).start()
+        
+        algo_info = ALGORITHMS.get(self._algo, {"func": ALGORITHMS["BFS"]["func"], "type": "normal"})
+        algo_func = algo_info["func"]
+        algo_type = algo_info["type"]
+        is_complex = algo_type.startswith("missing_")
+        
+        if is_complex:
+            if algo_type == "missing_input":
+                starts_arr = starts
+                goals_arr = [goals[0]]
+            elif algo_type == "missing_goal":
+                starts_arr = [starts[0]]
+                goals_arr = goals
+            else:
+                starts_arr = [starts[0]]
+                goals_arr = [goals[0]]
+                
+            prob = Problem(starts_arr, goals_arr)
+            
+            def run_complex():
+                try:
+                    res, count = algo_func(prob, self.model._log_cb(lambda: self._is_stopped))
+                    if self._is_stopped:
+                        self._complete_search("Đã dừng", "red")
+                        return
+                        
+                    if res:
+                        self.model.solution_nodes = self.model._get_path(res)
+                        self._complete_search(f"Thành công! {len(self.model.solution_nodes)-1} bước.", C["success"], self.model.solution_nodes, count)
+                    else:
+                        self._complete_search("Không tìm thấy đường đi.", "red", count=count)
+                except StopSearchException:
+                    self._complete_search("Đã dừng", "red")
+                except Exception as e:
+                    self._complete_search(f"Lỗi: {e}", "red")
 
-    def stop_solving(self):
-        self._is_stopped = True
+            threading.Thread(target=run_complex, daemon=True).start()
+            return
 
-    def _thread(self, mat):
-        ok = self.model.solve(self._algo, mat, lambda: self._is_stopped)
-        self.view.root.after(0, self._done, ok)
+        def run():
+            sol_nodes = []
+            total_count = 0
+            last_prob = None
 
-    def _done(self, ok):
-        self.view.lbl_reached.config(text=f"States duyệt:  {self.model.reached_count:,}")
-        self.view.append_log(self.model.log_entries, self._log_off)
-        self._log_off += len(self.model.log_entries)
+            for i, st in enumerate(starts):
+                if self._is_stopped:
+                    self._complete_search("Đã dừng", "red")
+                    return
+                try:
+                    prob = Problem(st, goals[0])
+                    last_prob = prob
+                    res, count = algo_func(prob, self.model._log_cb(lambda: self._is_stopped))
+                    total_count += count
+                    if res and res != "cutoff":
+                        sol_nodes.append(self.model._get_path(res))
+                    else:
+                        break
+                except StopSearchException:
+                    self._complete_search("Đã dừng", "red")
+                    return
+                except Exception as e:
+                    self._complete_search(f"Lỗi: {e}", "red")
+                    return
 
-        if ok == "stopped":
-            self.view.lbl_status.config(text="Đã dừng tìm kiếm\ntheo yêu cầu!", fg=C["danger"])
-            self.view.set_solving_state(False)
-        elif ok:
-            self.view.lbl_steps.config(text=f"Số bước giải:  {len(self.model.solution_nodes)}")
-            short = self._algo.split("—")[0].strip()
-            self.view.lbl_algo.config(text=f"Thuật toán:  {short}")
-            self.view.lbl_status.config(text="Đã tìm thấy giải pháp!\nĐang hiển thị...", fg=C["success"])
-            self._animate(0, "")
-        else:
-            self.view.lbl_status.config(text="Không thể giải!\nTrạng thái này vô nghiệm.", fg=C["danger"])
-            self.view.set_solving_state(False)
+            if self._is_stopped:
+                return
+
+            if sol_nodes:
+                self.model.solution_nodes = sol_nodes[0]
+                res_node = self.model.solution_nodes[-1]
+                
+                is_goal = False
+                if getattr(res_node, 'h_cost', -1) == 0:
+                    is_goal = True
+                elif last_prob and last_prob.goal_test(getattr(res_node, 'state', None)):
+                    is_goal = True
+                    
+                if is_goal:
+                    self._complete_search(f"Thành công! {len(self.model.solution_nodes)-1} bước.", C["success"], self.model.solution_nodes, total_count)
+                else:
+                    self._complete_search(f"Thất bại: Đạt cực trị cục bộ! {len(self.model.solution_nodes)-1} bước.", C["warning"], self.model.solution_nodes, total_count)
+            else:
+                self._complete_search("Không tìm thấy đường đi.", "red", count=total_count)
+
+        threading.Thread(target=run, daemon=True).start()
+        self.view.lbl_status.config(text=lbl_text, fg=C["warning"])
+
+    def _complete_search(self, msg, color, path=None, count=None):
+        def cb():
+            self.view.lbl_status.config(text=msg, fg=color)
+            if count is not None:
+                self.view.lbl_reached.config(text=f"States duyệt:  {count}")
+                self.model.reached_count = count
+
+            if self.model.log_entries:
+                self.view.append_log(self.model.log_entries)
+                self.model.log_entries = []
+
+            if path:
+                self.view.lbl_steps.config(text=f"Số bước giải:  {len(path) - 1}")
+                self._animate(0, "")
+            else:
+                self.view.set_solving_state(False)
+
+        self.view.root.after(0, cb)
 
     def _animate(self, idx, path_str):
         if self._is_stopped:
@@ -557,8 +899,11 @@ class PuzzleController:
 
         if idx < len(nodes):
             n = nodes[idx]
-            self.view.update_board(n.state)
-            path_str += (" ➔ " if path_str else "") + n.action.upper()
+            st = getattr(n, 'belief_state', n.state)
+            self.view.update_board(st)
+            action_str = n.action.upper() if n.action else ""
+            if action_str:
+                path_str += (" ➔ " if path_str else "") + action_str
             self.view.lbl_moves.config(text=path_str)
             self.view.root.after(750, self._animate, idx+1, path_str)
         else:
