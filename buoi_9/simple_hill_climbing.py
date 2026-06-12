@@ -24,7 +24,7 @@ def simple_hill_climbing(problem: Problem, log_cb=None):
         else:
             break
 
-    return False, count
+    return current_node, count
 
 
 

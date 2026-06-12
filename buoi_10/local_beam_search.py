@@ -1,20 +1,26 @@
 from eight_puzzle_solver.puzzle_core import Problem, random_matrix, expand, manhattan_distance, Node
 import random
 
-def local_beam_search(problem: Problem, k=2, log_cb=None):
+def local_beam_search(problem: Problem, log_cb=None, k=2, max_count=10000):
     """Thuật toán Local Beam Search cho bài toán 8-puzzle.
     """
     node = Node(problem.start, None, None, 0, 0, manhattan_distance(problem.start, problem.goal))
     current_states = expand(problem, node, log_cb)
-    current_states = random.sample(current_states, k=k)
+    
+    if k < len(current_states):
+        current_states = random.sample(current_states, k=k)
+        
     count = len(current_states)
 
-    while True:
+    while count < max_count:
         neighbor_states = []
         for state in current_states:
             new_neighbors = expand(problem, state, log_cb)
             neighbor_states.extend(new_neighbors)
             count += len(new_neighbors)
+            
+            if count >= max_count:
+                break
         
         if len(neighbor_states) == 0:
             current_states = sorted(current_states, key=lambda x: x.h_cost)
@@ -26,7 +32,11 @@ def local_beam_search(problem: Problem, k=2, log_cb=None):
         
         neighbor_states = sorted(neighbor_states, key=lambda x: x.h_cost)
         current_states = neighbor_states[:k]
-    
+        
+    # Nếu vượt quá max_count, trả về trạng thái tốt nhất tìm được tới thời điểm hiện tại
+    current_states = sorted(current_states, key=lambda x: x.h_cost)
+    return current_states[0], count
+
 
 if __name__ == "__main__":
     matrix = random_matrix()

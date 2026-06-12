@@ -33,3 +33,4 @@ Thumbs.db
 .cache/
 .pytest_cache/
 .aider*
+local_docs/
