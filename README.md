@@ -4,13 +4,13 @@
 > **Sinh viên thực hiện**: Lê Đặng Hoàng Anh  
 > **MSSV**: 24162006  
 
-Dự án này là tập hợp các bài tập và sản phẩm thực hành xuyên suốt khóa học Trí Tuệ Nhân Tạo. Trọng tâm lớn nhất của dự án là module `eight_puzzle_solver/`, một ứng dụng GUI hoàn chỉnh áp dụng kiến trúc phần mềm chuyên nghiệp để minh họa, giải quyết và phân tích hiệu suất của hàng loạt thuật toán tìm kiếm kinh điển và nâng cao áp dụng trên bài toán 8-Puzzle.
+Dự án này là tập hợp các bài tập và sản phẩm thực hành xuyên suốt khóa học Trí Tuệ Nhân Tạo. Trọng tâm lớn nhất của dự án là một ứng dụng GUI hoàn chỉnh áp dụng kiến trúc phần mềm chuyên nghiệp để minh họa, giải quyết và phân tích hiệu suất của hàng loạt thuật toán tìm kiếm kinh điển và nâng cao áp dụng trên bài toán 8-Puzzle.
 
 ---
 
-## 🌟 Tính năng Kỹ thuật nổi bật
+## Tính năng Kỹ thuật nổi bật
 
-1. **Kiến trúc MVC (Model-View-Controller)**: Ứng dụng GUI chính (`eight_puzzle_solver.py`) được thiết kế tách biệt giao diện (`PuzzleView`), logic dữ liệu (`PuzzleModel`), và bộ điều khiển (`PuzzleController`), đảm bảo code dễ bảo trì và mở rộng.
+1. **Kiến trúc MVC (Model-View-Controller)**: Ứng dụng GUI chính (`main.py`) được thiết kế tách biệt giao diện (`PuzzleView`), logic dữ liệu (`PuzzleModel`), và bộ điều khiển (`PuzzleController`), đảm bảo code dễ bảo trì và mở rộng.
 2. **Registry Pattern cho Thuật Toán**: Các thuật toán được nạp thông qua một bộ cấu hình động `ALGORITHMS`. Giao diện sẽ tự động thích ứng (bật/tắt nút, hiển thị đa bàn cờ) dựa trên metadata (`type`) của từng thuật toán được chọn.
 3. **Môi trường Khuyết thông tin (Complex Environments)**: Hệ thống hỗ trợ xử lý môi trường không chắc chắn (chứa ký tự `?`). Thuật toán cốt lõi sẽ tự động tính toán không gian trạng thái giả định (**Belief States**) và phân rã các tập khả năng để tìm đường đi chung.
 4. **Data Binding & Reactive UI**: Bảng lưới Tkinter (`Entry`) được liên kết với cơ chế `trace_add` (Observer), giúp các thay đổi của người dùng được phản hồi và đồng bộ hóa lên màn hình hiển thị trực quan (Bàn cờ) theo thời gian thực (zero-latency).
@@ -18,76 +18,50 @@ Dự án này là tập hợp các bài tập và sản phẩm thực hành xuy�
 
 ---
 
-## 📂 Cấu trúc Thư mục và File chi tiết
+## Cấu trúc Thư mục và File chi tiết
 
-Dự án được chia thành các thư mục ứng với tiến trình học tập.
+Dự án được cấu trúc theo mô hình phân tán, các thuật toán được chia về các thư mục ứng với tiến trình học tập (các buổi học) nhưng được tích hợp và gọi thông qua một Giao Diện Chính và các bộ Core dùng chung tại thư mục gốc.
 
-### 1. Thư mục Học tập cơ bản (`buoi_2` đến `buoi_7`)
-Chứa các Notebook Jupyter và các script độc lập chạy trên console. Phục vụ mục đích hiểu rõ lý thuyết, cấu trúc dữ liệu cơ sở của tìm kiếm.
+### 1. File Nền Tảng Lõi (Thư mục Gốc)
+Đây là các file trái tim của hệ thống:
+* **`main.py`**: Ứng dụng giao diện chính (UI Application). Tích hợp Tkinter, kết nối tất cả các thuật toán vào một giao diện đồng nhất.
+* **`puzzle_core.py`**: Lõi cấu trúc dữ liệu nền tảng. Định nghĩa class `Node`, class `Problem`, và các hàm tiện ích cốt lõi (như hàm `expand`, tính `g_cost`, `h_cost`, kiểm tra trạng thái giải được `is_solvable`). Mọi thuật toán tìm kiếm tiêu chuẩn đều kế thừa các base class này.
+* **`complex_core.py`**: Lõi xử lý logic cho môi trường khuyết (`?`). Xây dựng logic tổ hợp chập (permutations) tạo `Belief State`, và tính Heuristic phức hợp (`complex_h_cost`) dùng khoảng cách Manhattan cho nhiều state song song.
 
-* `buoi_2/`: Khám phá bài toán cơ bản (bao gồm các tư liệu ảnh chụp `bt1.jpg`).
-* `buoi_3/`: Giới thiệu thuật toán tìm kiếm mù. Gồm Jupyter notebook (`TTNT_1.ipynb`, bài nộp `8_Puzzle`, `Robot_Hut_Bui`) và script `TTNT_2.py` thuần Python minh họa BFS/DFS.
-* `buoi_4/`: Mô hình hóa bài toán (Model-based agent). Chứa các Notebook chuyển dịch logic cơ bản thành kiến trúc hướng đối tượng (OOP).
-* `buoi_5/`: Bước đệm GUI. Thử nghiệm áp dụng thư viện Tkinter lần đầu cho BFS. Có các phiên bản v1 (cơ bản) và v2 (cải thiện kiểm tra mục tiêu sớm - early goal-test).
-* `buoi_6/`: Thử nghiệm thuật toán DFS (Depth-First Search) và IDS (Iterative Deepening Search).
-* `buoi_7/`: Tìm kiếm chi phí đồng nhất (Uniform Cost Search - UCS).
-* `buoi_8/`: Tìm kiếm có thông tin / Khám phá Heuristic. Chứa các file thuật toán A* (`a_star.py`) và IDA* (`ida_star.py`).
-* `buoi_9/`: Tìm kiếm cục bộ (Local Search) cơ bản. Chứa các thuật toán Leo đồi (`simple_hill_climbing.py` và `steepest_ascent_hill_climbing.py`).
-* `buoi_10/`: Local Search nâng cao. Chứa các biến thể Leo đồi tối ưu (`stochastic_hill_climbing.py`, `random_restart_hill_climbing.py`) và chùm tia (`local_beam_search.py`).
-* `buoi_11/`: Môi trường khuyết thông tin (Complex Environments). Chứa logic sinh Belief State và các biến thể A* phức tạp (`complex_a_star_*.py`) cùng thuật toán Luyện kim nhân tạo (`simulate_annealing.py`).
+### 2. Các Phân Hệ Thuật Toán (Thư mục `buoi_*`)
+Chứa các Notebook học thuyết (nếu có) và file thực thi thuật toán. Các thuật toán này đều tuân thủ chung chuẩn Interface `def algorithm(problem, log_cb=None)` để `main.py` có thể tự động liên kết dữ liệu và render đồ họa.
 
-### 2. Module Sản Phẩm Cuối Cùng (`eight_puzzle_solver/`)
-Đây là trái tim của hệ thống. Nơi tổng hợp toàn bộ các thuật toán và công nghệ GUI vào một ứng dụng duy nhất. Cấu trúc được chia làm 3 nhóm chính:
-
-#### Nhóm Core (Lõi hệ thống)
-* `puzzle_core.py`: Cấu trúc dữ liệu nền tảng. Định nghĩa class `Node`, class `Problem`, và các hàm toán học hỗ trợ (như chuyển `matrix` thành `tuple` tĩnh, sinh `random_matrix`, v.v).
-* `complex_core.py`: Lõi xử lý logic cho môi trường khuyết (`?`). Xây dựng `ComplexNode`, logic tổ hợp tổ hợp chập (permutations) tạo `Belief State`, và hàm Heuristic phức hợp (`complex_h_cost`) dùng khoảng cách Manhattan tính cho nhiều state song song.
-
-#### Nhóm Thuật Toán Kinh Điển (Normal)
-Các file này nhận vào một bài toán `Problem(start, goal)` và trả về đường đi.
-* `bfs.py`: Breadth-First Search (có phiên bản `bfs_v2` tối ưu).
-* `dfs.py`: Depth-First Search (Graph-search chặn chu trình).
-* `ids.py`: Iterative Deepening Search.
-* `ucs.py`: Uniform Cost Search.
-* `gs.py`: Greedy Search (Sử dụng hàm heuristic thuần túy).
-* `a_star.py`: Thuật toán A* kinh điển (kết hợp `g_cost` và `h_cost`).
-* `ida_star.py`: Iterative Deepening A*.
-
-#### Nhóm Tìm kiếm Địa phương (Local Search)
-Các file thực thi chiến lược tìm kiếm theo phương thức leo đồi và chùm tia:
-* `simple_hill_climbing.py`: Leo đồi đơn giản.
-* `steepest_ascent_hill_climbing.py`: Leo đồi dốc nhất.
-* `stochastic_hill_climbing.py`: Leo đồi ngẫu nhiên.
-* `random_restart_hill_climbing.py`: Leo đồi khởi động lại ngẫu nhiên.
-* `local_beam_search.py`: Local beam search duy trì `k` trạng thái tốt nhất.
-
-#### Nhóm Thuật Toán Phức Tạp (Complex / Missing Info)
-Nhóm thuật toán giải bài toán dựa trên `Belief States`.
-* `complex_a_star_missing_input.py`: Giải 8-puzzle khi đầu vào bị khuyết/ẩn một hoặc nhiều ô (nhập `?`).
-* `complex_a_star_missing_goal.py`: Giải bài toán khi người dùng nhập nhiều Goal (đa mục tiêu).
-* `complex_a_star_missing_both.py`: Giải bài toán khó nhất – vừa khuyết thông tin tại đầu vào, vừa khuyết thông tin tại đầu ra.
-
-#### Giao Diện Chính (UI Application)
-* `eight_puzzle_solver.py`: Điểm khởi chạy của chương trình. Tích hợp Tkinter.
+* **`buoi_02/` & `buoi_03/` & `buoi_04/`**: Giới thiệu lý thuyết, các mô hình hóa bài toán cơ bản dạng Jupyter Notebook và sơ đồ.
+* **`buoi_05/`**: Breadth-First Search (BFS). Có các phiên bản cơ bản và tối ưu. Chứa các file `test_bfs_v1.py` và `test_bfs_v2.py`.
+* **`buoi_06/`**: Depth-First Search (DFS) và Iterative Deepening Search (IDS). Chứa `test_dfs_v2.py` và `test_ids.py`.
+* **`buoi_07/`**: Tìm kiếm chi phí đồng nhất (Uniform Cost Search - UCS) trong `ucs.py` và Greedy Search trong `gs.py`.
+* **`buoi_08/`**: Tìm kiếm có thông tin / Khám phá Heuristic. Chứa các thuật toán ưu tú A* (`a_star.py`) và IDA* (`ida_star.py`).
+* **`buoi_09/`**: Tìm kiếm cục bộ (Local Search) cơ bản. Chứa các thuật toán Leo đồi (`simple_hill_climbing.py` và `steepest_ascent_hill_climbing.py`).
+* **`buoi_10/`**: Local Search nâng cao. Chứa các biến thể Leo đồi tối ưu (`stochastic_hill_climbing.py`, `random_restart_hill_climbing.py`) và thuật toán Chùm tia (`local_beam_search.py`).
+* **`buoi_11/`**: Môi trường khuyết thông tin (Complex Environments). Chứa logic sinh Belief State, Luyện kim nhân tạo (`simulated_annealing.py`), và các biến thể A* phức tạp giải bài toán khuyết:
+  * `complex_a_star_missing_input.py`
+  * `complex_a_star_missing_goal.py`
+  * `complex_a_star_missing_both.py`
+* **`buoi_12/`**: Các kiến trúc nâng cao: Backtracking Search (`backtracking_search.py`) và AND-OR Search (`and_or_search.py`).
 
 ---
 
-## 🚀 Hướng dẫn Cài đặt và Chạy ứng dụng
+## Hướng dẫn Cài đặt và Chạy ứng dụng
 
 ### Yêu cầu hệ thống
 * **Ngôn ngữ**: Python 3.8 trở lên.
 * **Thư viện**: 
-  * Giao diện dùng `tkinter` (thường được cài sẵn (built-in) cùng với bộ cài Python tiêu chuẩn trên Windows/macOS).
+  * Giao diện dùng `tkinter` (thường được cài sẵn cùng với bộ cài Python tiêu chuẩn trên Windows/macOS/Linux).
   * Đối với môi trường Jupyter Notebook trong các buổi học cũ, bạn có thể cần `jupyter`.
 
 ### Cách chạy
 
-**1. Clone thư mục dự án và di chuyển đến thư mục chứa ứng dụng:**
+**1. Clone thư mục dự án và di chuyển đến thư mục chứa project:**
 ```bash
-cd ttnt/eight_puzzle_solver
+cd ttnt
 ```
 
-**2. Khởi chạy Ứng dụng GUI:**
+**2. Khởi chạy Ứng dụng GUI Chính:**
 ```bash
 python main.py
 ```
@@ -95,7 +69,7 @@ python main.py
 
 ---
 
-## 💡 Hướng dẫn Sử dụng Giao diện (Dành cho Giảng viên/Người đánh giá)
+## Hướng dẫn Sử dụng Giao diện (Dành cho Giảng viên/Người đánh giá)
 
 1. **Chọn Thuật toán**: Phía panel bên trái, có Dropdown liệt kê tất cả hơn 15+ thuật toán. Khi chọn một thuật toán thuộc nhóm `Complex A*`, giao diện sẽ tự động bật 2 bàn cờ song song để thể hiện trực quan môi trường bất định.
 2. **Nhập liệu Trực tiếp**:
@@ -104,7 +78,7 @@ python main.py
    * Sử dụng phím `Mũi tên (Lên/Xuống/Trái/Phải)` trên bàn phím để di chuyển ô nhập liệu nhanh chóng. Giao diện thay đổi tức thời theo mỗi nút bạn bấm.
 3. **Thử nghiệm Ô Khuyết**:
    * Xóa một số và gõ dấu `?` vào ô đó.
-   * Chọn một trong 3 thuật toán `Complex A*`.
+   * Chọn một trong 3 thuật toán `Complex A* (Khuyết ... )`.
    * Bấm nút **▶▶ Giải Tất Cả**. Hệ thống sẽ tự động sinh các hoán vị, lọc ra ma trận hợp lệ và tìm một chuỗi hành động duy nhất giải quyết được mọi khả năng có thể xảy ra của dấu `?`.
 4. **Đọc Log và Path**:
    * Cột giữa màn hình sẽ phát lại chuỗi hành động `(L ➔ U ➔ R ...)` sau khi tìm được kết quả thành công.
