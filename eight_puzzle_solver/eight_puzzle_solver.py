@@ -28,6 +28,9 @@ from complex_a_star_missing_input import complex_a_star_missing_input as _comple
 from complex_a_star_missing_goal import complex_a_star_missing_goal as _complex_a_star_missing_goal
 from complex_a_star_missing_both import complex_a_star_missing_both as _complex_a_star_missing_both
 
+from backtracking_search import backtracking_search as _backtracking_search
+from and_or_search import and_or_search as _and_or_search
+
 ALGORITHMS = {
     "BFS": {"func": _bfs, "type": "normal"},
     "BFS_V2": {"func": _bfs_v2, "type": "normal"},
@@ -47,6 +50,9 @@ ALGORITHMS = {
     "Complex A* (Khuyết Input)": {"func": _complex_a_star_missing_input, "type": "missing_input"},
     "Complex A* (Khuyết Goal)": {"func": _complex_a_star_missing_goal, "type": "missing_goal"},
     "Complex A* (Khuyết Input & Goal)": {"func": _complex_a_star_missing_both, "type": "missing_both"},
+    
+    "Backtracking Search": {"func": _backtracking_search, "type": "normal"},
+    "AND-OR Search": {"func": _and_or_search, "type": "normal"},
 }
 
 class StopSearchException(Exception):
