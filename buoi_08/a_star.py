@@ -1,5 +1,5 @@
 import heapq
-from eight_puzzle_solver.puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix, number_of_wrong, manhattan_distance, is_solevable
+from puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix, number_of_wrong, manhattan_distance, is_solvable
 
 def a_star(problem: Problem, log_cb=None):
     """Thuật toán A* cho bài toán 8-puzzle.

@@ -1,5 +1,5 @@
-from eight_puzzle_solver.puzzle_core import Problem, random_matrix
-from stochastic_hill_climbing import stochastic_hill_climbing
+from puzzle_core import Problem, random_matrix
+from buoi_10.stochastic_hill_climbing import stochastic_hill_climbing
 
 
 def random_restart_hill_climbing(problem: Problem, log_cb=None):

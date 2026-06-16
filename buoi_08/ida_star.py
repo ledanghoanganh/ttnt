@@ -1,4 +1,4 @@
-from eight_puzzle_solver.puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix, manhattan_distance
+from puzzle_core import Node, Problem, tuple_matrix, expand, random_matrix, manhattan_distance
 
 def _cost_limited_search(problem: Problem, limit, log_cb=None):
     """Thuật toán A* phiên bản Cost-Limit Test cho bài toán 8-puzzle.

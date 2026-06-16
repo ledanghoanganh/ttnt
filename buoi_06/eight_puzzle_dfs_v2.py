@@ -56,25 +56,26 @@ class PuzzleModel:
             children.append(child)
         return children
 
-    def eight_puzzel(self, start_matrix):
+    def dfs_v2(self, start_matrix):
         node = Node(start_matrix, None, None, 0)
-        if node.state == self.goal: return node
+        if node.state == self.goal: return node, self.reached_count
 
         frontier = []; frontier.append(node)
         frontier_states = set(); frontier_states.add(self.tuple_matrix(node.state))
         reached = set(); reached.add(self.tuple_matrix(node.state))
 
         while frontier:
-            node = frontier.pop() 
+            node = frontier.pop()
+            self.reached_count = len(reached)
             for child in self.expand(node):
                 s = child.state
-                if s == self.goal: return child
+                if s == self.goal: return child, self.reached_count
                 if self.tuple_matrix(s) not in reached and self.tuple_matrix(s) not in frontier_states:
                     reached.add(self.tuple_matrix(s))
                     frontier.append(child)    
                     frontier_states.add(self.tuple_matrix(s))    
 
-        return False
+        return False, self.reached_count
     
     def solution(self, node):
         res = []
@@ -232,7 +233,7 @@ class PuzzleController:
         thread.start()
 
     def run_dfs_thread(self, start_matrix):
-        success = self.model.eight_puzzel(start_matrix)
+        success, _ = self.model.dfs_v2(start_matrix)
         # Sử dụng after để gọi lại hàm cập nhật UI ở Main Thread
         self.view.root.after(0, self.on_solve_complete, success)
 

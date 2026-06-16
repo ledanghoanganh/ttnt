@@ -1,6 +1,5 @@
 import itertools
-import copy
-from puzzle_core import Node, Problem, tuple_matrix
+from puzzle_core import tuple_matrix
 
 def expand_partial_state(matrix):
     missing_positions = []

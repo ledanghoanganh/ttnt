@@ -57,7 +57,7 @@ class PuzzleModel:
             children.append(child)
         return children
 
-    def eight_puzzel(self, start_matrix):
+    def bfs_v1(self, start_matrix):
         node = Node(start_matrix, None, None, 0)
         frontier = deque(); frontier.append(node)
         frontier_states = set(); frontier_states.add(self.tuple_matrix(node.state))
@@ -65,7 +65,7 @@ class PuzzleModel:
 
         while frontier:
             node = frontier.popleft() 
-            if node.state == self.goal: return node
+            if node.state == self.goal: return node, len(reached)
             
             reached.add(self.tuple_matrix(node.state))
             self.reached_count = len(reached)
@@ -76,16 +76,16 @@ class PuzzleModel:
                     frontier.append(child)    
                     frontier_states.add(c)    
 
-        return False
-    
-    def solution(self, node):
+        return False, len(reached)
+
+    def bfs_v1_solution(self, node):
         res = []
         while node.parent is not None:
             res.append(node)
             node = node.parent
         res.reverse()
         self.solution_nodes = res
-        
+
 
 class PuzzleView:
     def __init__(self, root, controller):
@@ -234,7 +234,7 @@ class PuzzleController:
         thread.start()
 
     def run_bfs_thread(self, start_matrix):
-        success = self.model.eight_puzzel(start_matrix)
+        success, _ = self.model.bfs_v1(start_matrix)
         # Sử dụng after để gọi lại hàm cập nhật UI ở Main Thread
         self.view.root.after(0, self.on_solve_complete, success)
 
@@ -242,7 +242,7 @@ class PuzzleController:
         self.view.lbl_reached.config(text=f"Số state đã duyệt:\n{self.model.reached_count}")
         
         if success:
-            self.model.solution(success)
+            self.model.bfs_v1_solution(success)
             self.view.lbl_status.config(text="Đã tìm thấy giải pháp!\nĐang hiển thị...", fg="green")
             self.animate_solution(0, "")
         else:

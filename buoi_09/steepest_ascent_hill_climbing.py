@@ -1,4 +1,4 @@
-from eight_puzzle_solver.puzzle_core import Problem, Node, random_matrix, expand, manhattan_distance
+from puzzle_core import Problem, Node, random_matrix, expand, manhattan_distance
 
 
 def steepest_ascent_hill_climbing(problem: Problem, log_cb=None):

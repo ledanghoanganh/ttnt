@@ -1,4 +1,4 @@
-from eight_puzzle_solver.puzzle_core import Problem, random_matrix, expand, manhattan_distance, Node
+from puzzle_core import Problem, random_matrix, expand, manhattan_distance, Node
 import random
 
 def local_beam_search(problem: Problem, log_cb=None, k=2, max_count=10000):

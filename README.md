@@ -89,7 +89,7 @@ cd ttnt/eight_puzzle_solver
 
 **2. Khởi chạy Ứng dụng GUI:**
 ```bash
-python eight_puzzle_solver.py
+python main.py
 ```
 *(Lưu ý: Màn hình cần độ phân giải tối thiểu 1100x700 để hiển thị tốt nhất. Ứng dụng có tích hợp DPI Awareness giúp hiển thị sắc nét trên màn hình High DPI của Windows).*
 

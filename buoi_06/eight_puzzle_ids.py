@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 import random
 import copy
-from collections import deque
 import threading
 
 
@@ -67,12 +66,12 @@ class PuzzleModel:
         if node.state == self.goal:
             return self.solution(node)
 
-        frontier = deque(); frontier.append(node)
+        frontier = []; frontier.append(node)
         frontier_set = set(); frontier_set.add(self.tuple_matrix(node.state))
         explored = set()
 
         while frontier:
-            node = frontier.popleft()
+            node = frontier.pop()
             explored.add(self.tuple_matrix(node.state))
             self.reached_count = len(explored)
 
@@ -98,7 +97,7 @@ class PuzzleView:
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
-        self.root.title("8-Puzzle BFS Solver Version 2")
+        self.root.title("8-Puzzle DFS Solver Version 2")
         self.root.geometry("1100x700")
 
         self.setup_ui()
@@ -145,7 +144,7 @@ class PuzzleView:
 
         self.btn_random = tk.Button(self.right_frame, text="Tạo ngẫu nhiên", command=self.controller.generate_random)
         self.btn_random.pack(fill="x", padx=20, pady=5)
-        self.btn_solve = tk.Button(self.right_frame, text="Giải bằng BFS", bg="#2ecc71", fg="white", font=("Arial", 10, "bold"), command=self.controller.start_solving)
+        self.btn_solve = tk.Button(self.right_frame, text="Giải bằng DFS", bg="#2ecc71", fg="white", font=("Arial", 10, "bold"), command=self.controller.start_solving)
         self.btn_solve.pack(fill="x", padx=20, pady=5)
 
         # -- CENTER FRAME: Bàn cờ & Lịch sử bước đi --
@@ -230,14 +229,14 @@ class PuzzleController:
 
         self.view.btn_solve.config(state="disabled")
         self.view.btn_random.config(state="disabled")
-        self.view.lbl_status.config(text="Đang giải bằng BFS...\n(Có thể mất vài giây)", fg="orange")
+        self.view.lbl_status.config(text="Đang giải bằng DFS...\n(Có thể mất vài giây)", fg="orange")
         self.view.lbl_moves.config(text="")
         self.view.update_board(start_matrix)
 
-        thread = threading.Thread(target=self.run_bfs_thread, args=(start_matrix,))
+        thread = threading.Thread(target=self.run_dfs_thread, args=(start_matrix,))
         thread.start()
 
-    def run_bfs_thread(self, start_matrix):
+    def run_dfs_thread(self, start_matrix):
         success = self.model.eight_puzzle(start_matrix)
         self.view.root.after(0, self.on_solve_complete, success)
 

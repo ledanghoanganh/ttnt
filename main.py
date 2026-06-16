@@ -10,26 +10,27 @@ except Exception:
     pass
 
 from puzzle_core import random_matrix, Problem
-from bfs import bfs as _bfs, bfs_v2 as _bfs_v2
-from dfs import dfs as _dfs
-from ids import ids as _ids
-from ucs import ucs as _ucs
-from gs import gs as _gs
-from a_star import a_star as _a_star
-from ida_star import ida_star as _ida_star
-from simple_hill_climbing import simple_hill_climbing as _simple_hill_climbing
-from steepest_ascent_hill_climbing import steepest_ascent_hill_climbing as _steepest_ascent_hill_climbing
-from stochastic_hill_climbing import stochastic_hill_climbing as _stochastic_hill_climbing
-from random_restart_hill_climbing import random_restart_hill_climbing as _random_restart_hill_climbing
-from local_beam_search import local_beam_search as _local_beam_search
-from simulated_annealing import simulated_annealing as _simulated_annealing
+from buoi_05.test_bfs_v1 import bfs_v1 as _bfs
+from buoi_05.test_bfs_v2 import bfs_v2 as _bfs_v2
+from buoi_06.test_dfs_v2 import dfs_v2 as _dfs
+from buoi_06.test_ids import ids as _ids
+from buoi_07.ucs import ucs as _ucs
+from buoi_07.gs import gs as _gs
+from buoi_08.a_star import a_star as _a_star
+from buoi_08.ida_star import ida_star as _ida_star
+from buoi_09.simple_hill_climbing import simple_hill_climbing as _simple_hill_climbing
+from buoi_09.steepest_ascent_hill_climbing import steepest_ascent_hill_climbing as _steepest_ascent_hill_climbing
+from buoi_10.stochastic_hill_climbing import stochastic_hill_climbing as _stochastic_hill_climbing
+from buoi_10.random_restart_hill_climbing import random_restart_hill_climbing as _random_restart_hill_climbing
+from buoi_10.local_beam_search import local_beam_search as _local_beam_search
+from buoi_11.simulated_annealing import simulated_annealing as _simulated_annealing
 
-from complex_a_star_missing_input import complex_a_star_missing_input as _complex_a_star_missing_input
-from complex_a_star_missing_goal import complex_a_star_missing_goal as _complex_a_star_missing_goal
-from complex_a_star_missing_both import complex_a_star_missing_both as _complex_a_star_missing_both
+from buoi_11.complex_a_star_missing_input import complex_a_star_missing_input as _complex_a_star_missing_input
+from buoi_11.complex_a_star_missing_goal import complex_a_star_missing_goal as _complex_a_star_missing_goal
+from buoi_11.complex_a_star_missing_both import complex_a_star_missing_both as _complex_a_star_missing_both
 
-from backtracking_search import backtracking_search as _backtracking_search
-from and_or_search import and_or_search as _and_or_search
+from buoi_12.backtracking_search import backtracking_search as _backtracking_search
+from buoi_12.and_or_search import and_or_search as _and_or_search
 
 ALGORITHMS = {
     "BFS": {"func": _bfs, "type": "normal"},

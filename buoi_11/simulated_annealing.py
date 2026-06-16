@@ -1,4 +1,4 @@
-from eight_puzzle_solver.puzzle_core import Problem, Node, random_matrix, expand, manhattan_distance
+from puzzle_core import Problem, Node, random_matrix, expand, manhattan_distance
 import random, math
 
 
