@@ -42,7 +42,7 @@ Chứa các Notebook học thuyết (nếu có) và file thực thi thuật toá
   * `complex_a_star_missing_input.py`
   * `complex_a_star_missing_goal.py`
   * `complex_a_star_missing_both.py`
-* **`buoi_12/`**: Các kiến trúc tìm kiếm nâng cao và Constraint Satisfaction Problem (CSP): Backtracking Search (`backtracking_search.py`), Forward Checking (`forward_checking.py`) và AND-OR Search (`and_or_search.py`).
+* **`buoi_12/`**: AND-OR Search (`and_or_search.py`) và các kiến trúc tìm kiếm nâng cao và Constraint Satisfaction Problem (CSP): Backtracking Search (`backtracking_search.py`), Forward Checking (`forward_checking.py`).
 * **`buoi_13/`**: Constraint Propagation và Local Search cho CSP: Lan truyền ràng buộc AC-3 (`ac_3.py`) và thuật toán Min-Conflicts (`min_conflict.py`).
 
 ---
