@@ -31,6 +31,8 @@ from buoi_11.complex_a_star_missing_both import complex_a_star_missing_both as _
 
 from buoi_12.backtracking_search import backtracking_search as _backtracking_search
 from buoi_12.and_or_search import and_or_search as _and_or_search
+from buoi_13.ac_3 import ac_3 as _ac_3
+from buoi_13.min_conflict import min_conflict as _min_conflict
 
 ALGORITHMS = {
     "BFS": {"func": _bfs, "type": "normal"},
@@ -54,6 +56,8 @@ ALGORITHMS = {
     
     "Backtracking Search": {"func": _backtracking_search, "type": "normal"},
     "AND-OR Search": {"func": _and_or_search, "type": "normal"},
+    "AC-3": {"func": _ac_3, "type": "normal"},
+    "Min-Conflicts": {"func": _min_conflict, "type": "normal"},
 }
 
 class StopSearchException(Exception):

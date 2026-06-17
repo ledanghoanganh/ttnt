@@ -1,105 +1,107 @@
-from puzzle_core import Problem, Node, expand, manhattan_distance, random_matrix
+from puzzle_core import Problem, Node
+import copy
 import sys
 
 sys.setrecursionlimit(2000)
 
 def and_or_search(problem: Problem, log_cb=None):
-    """
-    Thuật toán AND-OR Graph Search.
-    """
     count_obj = [0]
+    VARIABLES = [(r, c) for r in range(3) for c in range(3)]
     
-    def OR_SEARCH(state, path):
-        current_node = Node(state, None, None, 0, 0, 0)
-        if log_cb:
-            log_cb(current_node)
-        count_obj[0] += 1
+    def OR_SEARCH(state, problem, path):
+        # goal_test
+        def is_goal(s):
+            for r in range(3):
+                for c in range(3):
+                    if s[r][c] == '?': return False
+                    if s[r][c] != problem.goal[r][c]: return False
+            return True
             
-        if problem.goal_test(state):
+        if is_goal(state):
             return []
             
         state_tuple = tuple(map(tuple, state))
         if state_tuple in path:
             return "failure"
             
-        if len(path) >= 30:
-            return "failure"
+        # Tìm biến chưa gán
+        var_idx = -1
+        for i in range(9):
+            r, c = VARIABLES[i]
+            if state[r][c] == '?':
+                var_idx = i
+                break
+        if var_idx == -1: return "failure"
+        r, c = VARIABLES[var_idx]
+        
+        # problem.actions(state)
+        actions = []
+        for val in range(9):
+            consistent = True
+            if problem.goal[r][c] != val: consistent = False
+            for i in range(3):
+                for j in range(3):
+                    if state[i][j] == val: consistent = False
             
-        for child_node in expand(problem, current_node, None):
-            action = child_node.action
+            action_str = f"x{var_idx+1} = {val}"
+            err_s = copy.deepcopy(state)
+            err_s[r][c] = val
+            err_node = Node(err_s, None, action_str, len(path)+1, 0, 0)
+                
+            if consistent:
+                actions.append((val, action_str, err_node))
+                if log_cb: log_cb(err_node)
+                count_obj[0] += 1
+            else:
+                err_node.action += " (Sai)"
+                if log_cb: log_cb(err_node)
+                count_obj[0] += 1
+                
+        for val, action_str, node in actions:
+            # result_states = problem.results(state, action)
+            new_state = copy.deepcopy(state)
+            new_state[r][c] = val
+            result_states = [new_state]
             
-            result_states = [child_node.state]
-            
-            plan = AND_SEARCH(result_states, path + [state_tuple])
-            
+            plan = AND_SEARCH(result_states, problem, path + [state_tuple])
             if plan != "failure":
-                return [action, plan]
+                return [action_str, plan]
                 
         return "failure"
 
-    def AND_SEARCH(states, path):
+    def AND_SEARCH(states, problem, path):
         plans = {}
-        
         for s in states:
-            plan_s = OR_SEARCH(s, path)
-            
+            plan_s = OR_SEARCH(s, problem, path)
             if plan_s == "failure":
                 return "failure"
-                
-            s_tuple = tuple(map(tuple, s))
-            plans[s_tuple] = plan_s
-            
+            plans[tuple(map(tuple, s))] = plan_s
         return plans
 
-    plan = OR_SEARCH(problem.start, [])
-    
-    # Do GUI cần một node cuối cùng (kèm thông tin parent) để vẽ quá trình di chuyển,
-    # ta phải chuyển đổi "plan" (danh sách lồng nhau) trở lại thành Node chain.
-    if plan == "failure":
-        return None, count_obj[0]
+    def AND_OR_GRAPH_SEARCH(problem):
+        initial_state = [['?' for _ in range(3)] for _ in range(3)]
+        return OR_SEARCH(initial_state, problem, [])
         
-    def build_node_chain(state, current_plan, parent_node):
-        if current_plan == []:
-            return parent_node
+    plan = AND_OR_GRAPH_SEARCH(problem)
+    
+    if plan != "failure":
+        nodes = [Node([['?' for _ in range(3)] for _ in range(3)], None, "Init", 0, 0, 0)]
+        curr_plan = plan
+        for i in range(9):
+            if not curr_plan: break
+            action_str = curr_plan[0]
+            val = int(action_str.split("=")[1].strip())
+            r, c = VARIABLES[i]
+            ns = copy.deepcopy(nodes[-1].state)
+            ns[r][c] = val
+            n = Node(ns, nodes[-1], action_str, i+1, 0, 0)
+            nodes.append(n)
             
-        action = current_plan[0]
-        sub_plans = current_plan[1]
+            # lấy plan con
+            sub_plans = curr_plan[1]
+            ns_tuple = tuple(map(tuple, ns))
+            curr_plan = sub_plans.get(ns_tuple, [])
+            
+        return nodes[-1], count_obj[0]
         
-        temp_node = Node(state, None, None, 0, 0, 0)
-        for child in expand(problem, temp_node, None):
-            if child.action == action:
-                child.parent = parent_node
-                child_state_tuple = tuple(map(tuple, child.state))
-                next_plan = sub_plans[child_state_tuple]
-                return build_node_chain(child.state, next_plan, child)
-                
-    start_node = Node(problem.start, None, None, 0, 0, manhattan_distance(problem.start, problem.goal))
-    final_node = build_node_chain(problem.start, plan, start_node)
-    
-    return final_node, count_obj[0]
-
-if __name__ == "__main__":
-    matrix = random_matrix()
-    goal = [[1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 0]]
-    states = []
-    problem = Problem(matrix, goal)
-
-    for row in matrix:
-        print(row)
-
-    res_node, reached_len = and_or_search(problem)
-    if res_node == False:
-        print("Không giải được")
-    else:
-        res = []
-        while res_node.parent != None:
-            res.append(res_node)
-            res_node = res_node.parent
-
-        res.reverse()
-        for node in res:
-            print(node.action)
-            for row in node.state:
-                print(row)
+    return None, count_obj[0]

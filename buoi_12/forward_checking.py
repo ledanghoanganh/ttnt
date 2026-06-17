@@ -4,7 +4,7 @@ import sys
 
 sys.setrecursionlimit(2000)
 
-def backtracking_search(problem: Problem, log_cb=None):
+def forward_checking_search(problem: Problem, log_cb=None):
     count_obj = [0]
     VARIABLES = [(r, c) for r in range(3) for c in range(3)]
     
@@ -14,9 +14,6 @@ def backtracking_search(problem: Problem, log_cb=None):
             if var not in assigned_vars:
                 return var
         return None
-        
-    def ORDER_DOMAIN_VALUES(var, assignment, csp):
-        return list(range(9))
         
     def CONSISTENT(var, value, assignment, csp):
         r, c = var
@@ -28,14 +25,28 @@ def backtracking_search(problem: Problem, log_cb=None):
                 return False
         return True
 
-    def BACKTRACK(assignment, csp):
-        if len(assignment) == 9: # assignment is complete
+    def FORWARD_CHECK(var, value, unassigned_domains):
+        """
+        Hàm nhìn trước (Forward Checking): 
+        Loại bỏ giá trị 'value' khỏi tập domains của các biến chưa được gán 
+        để đảm bảo ràng buộc khác nhau (AllDiff).
+        """
+        new_domains = copy.deepcopy(unassigned_domains)
+        for unassigned_var in new_domains:
+            if value in new_domains[unassigned_var]:
+                new_domains[unassigned_var].remove(value)
+            
+            if len(new_domains[unassigned_var]) == 0:
+                return None 
+        return new_domains
+
+    def BACKTRACK(assignment, domains, csp):
+        if len(assignment) == 9:
             return assignment
             
         var = SELECT_UNASSIGNED_VARIABLE(assignment, csp)
         
-        for value in ORDER_DOMAIN_VALUES(var, assignment, csp):
-            # Log state
+        for value in domains[var]:
             state_matrix = [['?' for _ in range(3)] for _ in range(3)]
             for (vr, vc), vv in assignment.items():
                 state_matrix[vr][vc] = vv
@@ -47,14 +58,20 @@ def backtracking_search(problem: Problem, log_cb=None):
                 if log_cb: log_cb(child_node)
                 count_obj[0] += 1
                 
-                # add {var = value} to assignment
                 assignment[var] = value
                 
-                result = BACKTRACK(assignment, csp)
-                if result != "failure":
-                    return result
+                unassigned_domains = {v: domains[v] for v in VARIABLES if v not in assignment}
+                
+                new_unassigned_domains = FORWARD_CHECK(var, value, unassigned_domains)
+                
+                if new_unassigned_domains is not None:
+                    next_domains = copy.deepcopy(domains)
+                    next_domains.update(new_unassigned_domains)
                     
-                # remove {var = value} from assignment
+                    result = BACKTRACK(assignment, next_domains, csp)
+                    if result != "failure":
+                        return result
+                    
                 del assignment[var]
             else:
                 child_node.action += " (Sai)"
@@ -64,7 +81,8 @@ def backtracking_search(problem: Problem, log_cb=None):
         return "failure"
         
     def BACKTRACKING_SEARCH(csp):
-        return BACKTRACK({}, csp)
+        initial_domains = {var: list(range(9)) for var in VARIABLES}
+        return BACKTRACK({}, initial_domains, csp)
         
     final_assignment = BACKTRACKING_SEARCH(problem)
     
